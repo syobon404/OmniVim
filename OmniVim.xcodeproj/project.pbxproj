@@ -1,0 +1,554 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B10000000000000000000001 /* AccessibilityScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* AccessibilityScanner.swift */; };
+		B10000000000000000000002 /* AXInspectorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* AXInspectorWindowController.swift */; };
+		B10000000000000000000003 /* AXSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* AXSnapshot.swift */; };
+		B10000000000000000000004 /* FocusDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* FocusDetector.swift */; };
+		B10000000000000000000005 /* HintEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000005 /* HintEngine.swift */; };
+		B10000000000000000000006 /* HintOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000006 /* HintOverlayController.swift */; };
+		B10000000000000000000007 /* OmniVimMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000007 /* OmniVimMain.swift */; };
+		B10000000000000000000008 /* HintEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000008 /* HintEngineTests.swift */; };
+		B10000000000000000000009 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F10000000000000000000009 /* XCTest.framework */; };
+		B1000000000000000000000A /* system-settings-sidebar.json in Resources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000D /* system-settings-sidebar.json */; };
+		B10000000000000000000010 /* AXService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000010 /* AXService.swift */; };
+		B10000000000000000000011 /* ElementActivator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000011 /* ElementActivator.swift */; };
+		B10000000000000000000012 /* InteractionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000012 /* InteractionState.swift */; };
+		B10000000000000000000013 /* OmniVimAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000013 /* OmniVimAppDelegate.swift */; };
+		B10000000000000000000014 /* OmniVimCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000014 /* OmniVimCoordinator.swift */; };
+		B10000000000000000000015 /* DiagnosticLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000015 /* DiagnosticLogger.swift */; };
+		B10000000000000000000016 /* GlobalKeyMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000016 /* GlobalKeyMonitor.swift */; };
+		B10000000000000000000017 /* InputSynthesizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000017 /* InputSynthesizer.swift */; };
+		B10000000000000000000018 /* KeyPress.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000018 /* KeyPress.swift */; };
+		B10000000000000000000019 /* HintOverlayViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000019 /* HintOverlayViews.swift */; };
+		B1000000000000000000001A /* ModeIndicatorController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001A /* ModeIndicatorController.swift */; };
+		B1000000000000000000001B /* ElementActivatorStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001B /* ElementActivatorStrategyTests.swift */; };
+		B1000000000000000000001C /* InteractionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001C /* InteractionStateTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C10000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = P10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = T10000000000000000000001;
+			remoteInfo = OmniVim;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		F10000000000000000000001 /* AccessibilityScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityScanner.swift; sourceTree = "<group>"; };
+		F10000000000000000000002 /* AXInspectorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXInspectorWindowController.swift; sourceTree = "<group>"; };
+		F10000000000000000000003 /* AXSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXSnapshot.swift; sourceTree = "<group>"; };
+		F10000000000000000000004 /* FocusDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusDetector.swift; sourceTree = "<group>"; };
+		F10000000000000000000005 /* HintEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintEngine.swift; sourceTree = "<group>"; };
+		F10000000000000000000006 /* HintOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintOverlayController.swift; sourceTree = "<group>"; };
+		F10000000000000000000007 /* OmniVimMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniVimMain.swift; sourceTree = "<group>"; };
+		F10000000000000000000008 /* HintEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintEngineTests.swift; sourceTree = "<group>"; };
+		F10000000000000000000009 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		F1000000000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F1000000000000000000000B /* OmniVim.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OmniVim.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1000000000000000000000C /* OmniVimTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OmniVimTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1000000000000000000000D /* system-settings-sidebar.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "system-settings-sidebar.json"; sourceTree = "<group>"; };
+		F10000000000000000000010 /* AXService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXService.swift; sourceTree = "<group>"; };
+		F10000000000000000000011 /* ElementActivator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElementActivator.swift; sourceTree = "<group>"; };
+		F10000000000000000000012 /* InteractionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionState.swift; sourceTree = "<group>"; };
+		F10000000000000000000013 /* OmniVimAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniVimAppDelegate.swift; sourceTree = "<group>"; };
+		F10000000000000000000014 /* OmniVimCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniVimCoordinator.swift; sourceTree = "<group>"; };
+		F10000000000000000000015 /* DiagnosticLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticLogger.swift; sourceTree = "<group>"; };
+		F10000000000000000000016 /* GlobalKeyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalKeyMonitor.swift; sourceTree = "<group>"; };
+		F10000000000000000000017 /* InputSynthesizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSynthesizer.swift; sourceTree = "<group>"; };
+		F10000000000000000000018 /* KeyPress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyPress.swift; sourceTree = "<group>"; };
+		F10000000000000000000019 /* HintOverlayViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintOverlayViews.swift; sourceTree = "<group>"; };
+		F1000000000000000000001A /* ModeIndicatorController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeIndicatorController.swift; sourceTree = "<group>"; };
+		F1000000000000000000001B /* ElementActivatorStrategyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElementActivatorStrategyTests.swift; sourceTree = "<group>"; };
+		F1000000000000000000001C /* InteractionStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionStateTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		PH1000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		PH1000000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000000000000000000009 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		G10000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				G10000000000000000000002 /* Sources */,
+				G10000000000000000000004 /* Tests */,
+				G10000000000000000000005 /* Resources */,
+				G10000000000000000000006 /* Frameworks */,
+				G10000000000000000000007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		G10000000000000000000002 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				G10000000000000000000003 /* OmniVim */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000003 /* OmniVim */ = {
+			isa = PBXGroup;
+			children = (
+				G10000000000000000000010 /* Accessibility */,
+				G10000000000000000000012 /* App */,
+				G10000000000000000000013 /* Diagnostics */,
+				G10000000000000000000014 /* Hints */,
+				G10000000000000000000015 /* Input */,
+				G10000000000000000000016 /* Inspector */,
+				G10000000000000000000017 /* UI */,
+				G10000000000000000000011 /* Activation */,
+			);
+			path = OmniVim;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000004 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				G10000000000000000000008 /* OmniVimTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000005 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000000A /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000006 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000009 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000007 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000000B /* OmniVim.app */,
+				F1000000000000000000000C /* OmniVimTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000008 /* OmniVimTests */ = {
+			isa = PBXGroup;
+			children = (
+				G10000000000000000000018 /* Activation */,
+				G10000000000000000000019 /* App */,
+				G10000000000000000000009 /* Fixtures */,
+				G1000000000000000000001A /* Hints */,
+			);
+			path = OmniVimTests;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000009 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000000D /* system-settings-sidebar.json */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000010 /* Accessibility */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000010 /* AXService.swift */,
+				F10000000000000000000001 /* AccessibilityScanner.swift */,
+				F10000000000000000000004 /* FocusDetector.swift */,
+			);
+			path = Accessibility;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000011 /* Activation */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000011 /* ElementActivator.swift */,
+			);
+			path = Activation;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000012 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000012 /* InteractionState.swift */,
+				F10000000000000000000013 /* OmniVimAppDelegate.swift */,
+				F10000000000000000000014 /* OmniVimCoordinator.swift */,
+				F10000000000000000000007 /* OmniVimMain.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000013 /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000015 /* DiagnosticLogger.swift */,
+			);
+			path = Diagnostics;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000014 /* Hints */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000005 /* HintEngine.swift */,
+			);
+			path = Hints;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000015 /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000016 /* GlobalKeyMonitor.swift */,
+				F10000000000000000000017 /* InputSynthesizer.swift */,
+				F10000000000000000000018 /* KeyPress.swift */,
+			);
+			path = Input;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000016 /* Inspector */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000002 /* AXInspectorWindowController.swift */,
+				F10000000000000000000003 /* AXSnapshot.swift */,
+			);
+			path = Inspector;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000017 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000006 /* HintOverlayController.swift */,
+				F10000000000000000000019 /* HintOverlayViews.swift */,
+				F1000000000000000000001A /* ModeIndicatorController.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000018 /* Activation */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000001B /* ElementActivatorStrategyTests.swift */,
+			);
+			path = Activation;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000019 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000001C /* InteractionStateTests.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000001A /* Hints */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000008 /* HintEngineTests.swift */,
+			);
+			path = Hints;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		T10000000000000000000001 /* OmniVim */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CL10000000000000000000002 /* Build configuration list for PBXNativeTarget "OmniVim" */;
+			buildPhases = (
+				PH1000000000000000000001 /* Sources */,
+				PH1000000000000000000002 /* Frameworks */,
+				PH1000000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OmniVim;
+			productName = OmniVim;
+			productReference = F1000000000000000000000B /* OmniVim.app */;
+			productType = "com.apple.product-type.application";
+		};
+		T10000000000000000000002 /* OmniVimTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CL10000000000000000000003 /* Build configuration list for PBXNativeTarget "OmniVimTests" */;
+			buildPhases = (
+				PH1000000000000000000004 /* Sources */,
+				PH1000000000000000000005 /* Frameworks */,
+				PH1000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D10000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = OmniVimTests;
+			productName = OmniVimTests;
+			productReference = F1000000000000000000000C /* OmniVimTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		P10000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					T10000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					T10000000000000000000002 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = T10000000000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = CL10000000000000000000001 /* Build configuration list for PBXProject "OmniVim" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = G10000000000000000000001;
+			productRefGroup = G10000000000000000000007 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				T10000000000000000000001 /* OmniVim */,
+				T10000000000000000000002 /* OmniVimTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		PH1000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		PH1000000000000000000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1000000000000000000000A /* system-settings-sidebar.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		PH1000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000000000000000000001 /* AccessibilityScanner.swift in Sources */,
+				B10000000000000000000002 /* AXInspectorWindowController.swift in Sources */,
+				B10000000000000000000003 /* AXSnapshot.swift in Sources */,
+				B10000000000000000000004 /* FocusDetector.swift in Sources */,
+				B10000000000000000000005 /* HintEngine.swift in Sources */,
+				B10000000000000000000006 /* HintOverlayController.swift in Sources */,
+				B10000000000000000000007 /* OmniVimMain.swift in Sources */,
+				B10000000000000000000010 /* AXService.swift in Sources */,
+				B10000000000000000000011 /* ElementActivator.swift in Sources */,
+				B10000000000000000000012 /* InteractionState.swift in Sources */,
+				B10000000000000000000013 /* OmniVimAppDelegate.swift in Sources */,
+				B10000000000000000000014 /* OmniVimCoordinator.swift in Sources */,
+				B10000000000000000000015 /* DiagnosticLogger.swift in Sources */,
+				B10000000000000000000016 /* GlobalKeyMonitor.swift in Sources */,
+				B10000000000000000000017 /* InputSynthesizer.swift in Sources */,
+				B10000000000000000000018 /* KeyPress.swift in Sources */,
+				B10000000000000000000019 /* HintOverlayViews.swift in Sources */,
+				B1000000000000000000001A /* ModeIndicatorController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		PH1000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000000000000000000008 /* HintEngineTests.swift in Sources */,
+				B1000000000000000000001B /* ElementActivatorStrategyTests.swift in Sources */,
+				B1000000000000000000001C /* InteractionStateTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D10000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = T10000000000000000000001 /* OmniVim */;
+			targetProxy = C10000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BC10000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		BC10000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		BC10000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7W9NSL3GJ9;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.omnivim.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		BC10000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7W9NSL3GJ9;
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.omnivim.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		BC10000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.omnivim.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OmniVim.app/Contents/MacOS/OmniVim";
+			};
+			name = Debug;
+		};
+		BC10000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.omnivim.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OmniVim.app/Contents/MacOS/OmniVim";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CL10000000000000000000001 /* Build configuration list for PBXProject "OmniVim" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC10000000000000000000001 /* Debug */,
+				BC10000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CL10000000000000000000002 /* Build configuration list for PBXNativeTarget "OmniVim" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC10000000000000000000003 /* Debug */,
+				BC10000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CL10000000000000000000003 /* Build configuration list for PBXNativeTarget "OmniVimTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC10000000000000000000005 /* Debug */,
+				BC10000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = P10000000000000000000001 /* Project object */;
+}

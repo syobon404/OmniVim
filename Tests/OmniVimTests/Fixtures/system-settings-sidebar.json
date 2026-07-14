@@ -1,0 +1,53 @@
+{
+  "applicationName" : "System Settings",
+  "bundleIdentifier" : "com.apple.systempreferences",
+  "capturedAt" : "2026-07-14T00:00:00Z",
+  "nodes" : [
+    {
+      "actions" : [],
+      "depth" : 0,
+      "description" : "",
+      "enabled" : true,
+      "focused" : false,
+      "frame" : { "height" : 760, "width" : 1200, "x" : 100, "y" : 100 },
+      "id" : 0,
+      "identifier" : "",
+      "parentID" : null,
+      "role" : "AXApplication",
+      "subrole" : "",
+      "title" : "System Settings",
+      "value" : ""
+    },
+    {
+      "actions" : ["AXPress"],
+      "depth" : 4,
+      "description" : "",
+      "enabled" : true,
+      "focused" : false,
+      "frame" : { "height" : 44, "width" : 300, "x" : 120, "y" : 180 },
+      "id" : 1,
+      "identifier" : "sidebar-row-wifi",
+      "parentID" : 0,
+      "role" : "AXRow",
+      "subrole" : "",
+      "title" : "Wi-Fi",
+      "value" : ""
+    },
+    {
+      "actions" : ["AXPress"],
+      "depth" : 4,
+      "description" : "",
+      "enabled" : true,
+      "focused" : false,
+      "frame" : { "height" : 44, "width" : 300, "x" : 120, "y" : 980 },
+      "id" : 2,
+      "identifier" : "sidebar-row-hidden",
+      "parentID" : 0,
+      "role" : "AXRow",
+      "subrole" : "",
+      "title" : "Hidden Below Scroll",
+      "value" : ""
+    }
+  ],
+  "processIdentifier" : 123
+}

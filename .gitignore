@@ -1,0 +1,6 @@
+.build/
+OmniVim.app/
+.DS_Store
+.swiftpm/
+xcuserdata/
+*.xcuserstate
