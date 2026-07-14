@@ -27,4 +27,25 @@ final class ElementActivatorStrategyTests: XCTestCase {
         XCTAssertTrue(shouldSelectAXElement(role: "AXCell"))
         XCTAssertFalse(shouldSelectAXElement(role: "AXButton"))
     }
+
+    func testAXActionsMapToStructuredActivationMethods() {
+        XCTAssertEqual(activationMethod(forAXAction: "AXPress"), .axPress)
+        XCTAssertEqual(activationMethod(forAXAction: "AXPick"), .axPick)
+        XCTAssertEqual(activationMethod(forAXAction: "AXShowMenu"), .axShowMenu)
+        XCTAssertNil(activationMethod(forAXAction: "AXUnknown"))
+    }
+
+    func testActivationAttemptLogSeparatesDispatchFromObservation() {
+        let attempt = ActivationAttempt(
+            activationID: "abc123",
+            method: .axPress,
+            dispatch: .accepted,
+            observation: .unknown
+        )
+
+        XCTAssertEqual(
+            attempt.logMessage,
+            "activation=abc123 method=axPress dispatch=accepted observation=unknown"
+        )
+    }
 }

@@ -11,16 +11,19 @@ final class ElementActivator {
     }
 
     func activate(_ target: UIElementHint) {
-        diagnosticLog("activate role=\(target.role) subrole=\(target.subrole) title=\(target.title)")
+        let activationID = String(UUID().uuidString.prefix(8)).lowercased()
+        diagnosticLog("activation=\(activationID) target role=\(target.role) subrole=\(target.subrole)")
         if editableRoles.contains(target.role) {
             let result = ax.setFocused(target.element)
-            diagnosticLog("AX focus role=\(target.role) title=\(target.title) result=\(result.rawValue)")
+            record(activationID, method: .focus, dispatch: activationDispatchOutcome(for: result))
         } else if clickableRoles.contains(target.role) {
-            activateClickable(target)
+            activateClickable(target, activationID: activationID)
         } else {
             let result = ax.perform(kAXPressAction as String, on: target.element)
+            record(activationID, method: .axPress, dispatch: activationDispatchOutcome(for: result))
             if result != .success {
-                input.clickGlobal(at: center(of: target.frame), processIdentifier: target.processIdentifier)
+                let posted = input.clickGlobal(at: center(of: target.frame), processIdentifier: target.processIdentifier)
+                record(activationID, method: .globalMouse, dispatch: posted ? .accepted : .unavailable)
             }
         }
     }
@@ -37,7 +40,7 @@ final class ElementActivator {
         ]
     }
 
-    private func activateClickable(_ target: UIElementHint) {
+    private func activateClickable(_ target: UIElementHint, activationID: String) {
         let point = center(of: target.frame)
         let activated = NSRunningApplication(processIdentifier: target.processIdentifier)?.activate(
             options: [.activateIgnoringOtherApps]
@@ -49,7 +52,7 @@ final class ElementActivator {
             guard let self else { return }
             if shouldSelectAXElement(role: target.role) {
                 let result = self.ax.setSelected(target.element)
-                diagnosticLog("AX select role=\(target.role) title=\(target.title) result=\(result.rawValue)")
+                self.record(activationID, method: .select, dispatch: activationDispatchOutcome(for: result))
                 if result == .success { return }
             }
 
@@ -59,20 +62,26 @@ final class ElementActivator {
                     "AX action role=\(resolved.role) action=\(resolved.action) "
                     + "supported=\(resolved.supportedActions.joined(separator: ",")) result=\(result.rawValue)"
                 )
+                if let method = activationMethod(forAXAction: resolved.action) {
+                    self.record(activationID, method: method, dispatch: activationDispatchOutcome(for: result))
+                }
                 if result == .success {
                     if requiresTargetedMouseConfirmation(processIdentifier: target.processIdentifier) {
-                        self.input.clickTargeted(at: point, processIdentifier: target.processIdentifier)
+                        let posted = self.input.clickTargeted(at: point, processIdentifier: target.processIdentifier)
+                        self.record(activationID, method: .targetedMouse, dispatch: posted ? .accepted : .unavailable)
                     }
                     return
                 }
             } else {
-                diagnosticLog("AX action unresolved role=\(target.role) title=\(target.title)")
+                diagnosticLog("AX action unresolved role=\(target.role)")
             }
 
             if requiresTargetedMouseConfirmation(processIdentifier: target.processIdentifier) {
-                self.input.clickTargeted(at: point, processIdentifier: target.processIdentifier)
+                let posted = self.input.clickTargeted(at: point, processIdentifier: target.processIdentifier)
+                self.record(activationID, method: .targetedMouse, dispatch: posted ? .accepted : .unavailable)
             } else {
-                self.input.clickGlobal(at: point, processIdentifier: target.processIdentifier)
+                let posted = self.input.clickGlobal(at: point, processIdentifier: target.processIdentifier)
+                self.record(activationID, method: .globalMouse, dispatch: posted ? .accepted : .unavailable)
             }
         }
     }
@@ -109,6 +118,20 @@ final class ElementActivator {
 
     private func center(of frame: CGRect) -> CGPoint {
         CGPoint(x: frame.midX, y: frame.midY)
+    }
+
+    private func record(
+        _ activationID: String,
+        method: ActivationMethod,
+        dispatch: ActivationDispatchOutcome,
+        observation: ActivationObservation = .unknown
+    ) {
+        diagnosticLog(ActivationAttempt(
+            activationID: activationID,
+            method: method,
+            dispatch: dispatch,
+            observation: observation
+        ).logMessage)
     }
 }
 

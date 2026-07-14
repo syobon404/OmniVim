@@ -20,16 +20,19 @@ final class InputSynthesizer {
         diagnosticLog("mouse move x=\(point.x) y=\(point.y)")
     }
 
-    func clickGlobal(at point: CGPoint, processIdentifier: pid_t? = nil) {
+    @discardableResult
+    func clickGlobal(at point: CGPoint, processIdentifier: pid_t? = nil) -> Bool {
         let source = CGEventSource(stateID: .combinedSessionState)
         let down = mouseEvent(source: source, type: .leftMouseDown, at: point)
         let up = mouseEvent(source: source, type: .leftMouseUp, at: point)
         down?.post(tap: .cghidEventTap)
         up?.post(tap: .cghidEventTap)
         diagnosticLog("mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier ?? 0) mode=global down=\(down != nil) up=\(up != nil)")
+        return down != nil && up != nil
     }
 
-    func clickTargeted(at point: CGPoint, processIdentifier: pid_t) {
+    @discardableResult
+    func clickTargeted(at point: CGPoint, processIdentifier: pid_t) -> Bool {
         let source = CGEventSource(stateID: .combinedSessionState)
         let down = mouseEvent(source: source, type: .leftMouseDown, at: point)
         let up = mouseEvent(source: source, type: .leftMouseUp, at: point)
@@ -39,6 +42,7 @@ final class InputSynthesizer {
             up?.postToPid(processIdentifier)
             diagnosticLog("mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier) mode=targeted phase=up created=\(up != nil)")
         }
+        return down != nil && up != nil
     }
 
     private func mouseEvent(source: CGEventSource?, type: CGEventType, at point: CGPoint) -> CGEvent? {
