@@ -34,6 +34,7 @@
 		B1000000000000000000001E /* OrderedKeyChord.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001E /* OrderedKeyChord.swift */; };
 		B1000000000000000000001F /* VimEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001F /* VimEngine.swift */; };
 		B10000000000000000000020 /* SyntheticVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000020 /* SyntheticVimCommandExecutor.swift */; };
+		B10000000000000000000021 /* TerminalVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000021 /* TerminalVimCommandExecutor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +78,7 @@
 		F1000000000000000000001E /* OrderedKeyChord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedKeyChord.swift; sourceTree = "<group>"; };
 		F1000000000000000000001F /* VimEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VimEngine.swift; sourceTree = "<group>"; };
 		F10000000000000000000020 /* SyntheticVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticVimCommandExecutor.swift; sourceTree = "<group>"; };
+		F10000000000000000000021 /* TerminalVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalVimCommandExecutor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -322,6 +324,7 @@
 			isa = PBXGroup;
 			children = (
 				F10000000000000000000020 /* SyntheticVimCommandExecutor.swift */,
+				F10000000000000000000021 /* TerminalVimCommandExecutor.swift */,
 			);
 			path = Execution;
 			sourceTree = "<group>";
@@ -447,6 +450,7 @@
 				B1000000000000000000001E /* OrderedKeyChord.swift in Sources */,
 				B1000000000000000000001F /* VimEngine.swift in Sources */,
 				B10000000000000000000020 /* SyntheticVimCommandExecutor.swift in Sources */,
+				B10000000000000000000021 /* TerminalVimCommandExecutor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

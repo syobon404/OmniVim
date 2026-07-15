@@ -2,14 +2,31 @@
 
 OmniVim is a macOS menu-bar prototype that combines Vim-style text navigation with Homerow-style accessibility hints.
 
-## MVP interactions
+## Supported commands
 
-- `h` / `j` / `k` / `l`: arrow-key navigation while an editable AX element is focused.
-- `w` / `b`: option-right / option-left word jumps.
-- `i` / `a`: leave OmniVim's normal mode and return to regular typing.
-- `Esc`: return to normal mode or dismiss hints.
-- `Control-F`: scan buttons, links, menu items and editable controls in the frontmost app.
-- Search hints are available from the menu; `s` remains a normal input key.
+### Modes and hints
+
+- [x] Hold `j`, then press `k`: leave Insert mode and enter Normal mode.
+- [x] `i` / `a`: leave Normal mode and return to Insert mode.
+- [x] `Esc`: cancel a pending operator or dismiss hints; otherwise pass through to macOS.
+- [x] `Control-F`: show hints for buttons, links, menu items and editable controls.
+- [x] Search hints from the menu; `s` remains a normal input key.
+
+### Motions
+
+- [x] `h` / `l`: move left or right by one character.
+- [x] `j` / `k`: move down or up by one line.
+- [x] `w` / `b`: move forward or backward by one word.
+- [x] `0` / `$`: move to the start or end of the line.
+
+### Operators
+
+- [x] `dh` / `dl`: delete one character to the left or right.
+- [x] `dw` / `db`: delete forward or backward by one word.
+- [x] `d0` / `d$`: delete to the start or end of the line.
+- [x] `dd`: delete the whole line.
+- [x] `ch` / `cl`, `cw` / `cb`, `c0` / `c$`, `cc`: delete the matching range and enter Insert mode.
+- [ ] `dj` / `dk`, `cj` / `ck`: cross-line terminal operators.
 
 UI hints use Vimium-style variable-length codes. Typing narrows the visible markers; the last
 remaining marker activates automatically. `Backspace` removes one prefix character and `Esc`
@@ -39,6 +56,25 @@ Run the HintEngine and fixture tests with either Xcode (`Command-U`) or:
 ```sh
 ./scripts/test.sh
 ```
+
+### Terminal integration (Kitty + fish)
+
+Terminal command lines are owned by the shell rather than exposed as a native macOS text buffer.
+OmniVim therefore sends Vim commands to a small fish companion, which edits the real command line
+with fish's `commandline` API. Install the development integration with:
+
+```sh
+./scripts/install-fish-integration.sh
+```
+
+Then open a new Kitty tab or window. OmniVim writes one local command to
+`~/Library/Caches/OmniVim/terminal-command` and sends the reserved `F20` trigger; the companion
+consumes the command and removes the file. Motions, `dw`/`db`/`d0`/`d$`/`dd`, and their `c`
+variants are supported as listed above. Cross-line terminal operators remain unchecked until their
+shell-buffer semantics are implemented.
+
+The first version targets an interactive fish prompt. Full-screen terminal applications have their
+own input model and are outside this bridge's current scope.
 
 The fixture-driven tests cover prefix-free hint codes, visibility clipping, hit-test rejection,
 deterministic marker layout and AX snapshot decoding.

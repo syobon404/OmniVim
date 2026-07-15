@@ -3,6 +3,31 @@ import Carbon.HIToolbox
 @testable import OmniVim
 
 final class InteractionStateTests: XCTestCase {
+    func testTerminalApplicationPolicyRecognizesKitty() {
+        XCTAssertTrue(TerminalApplicationPolicy.isTerminal(bundleIdentifier: "net.kovidgoyal.kitty"))
+        XCTAssertFalse(TerminalApplicationPolicy.isTerminal(bundleIdentifier: "com.apple.Notes"))
+        XCTAssertFalse(TerminalApplicationPolicy.isTerminal(bundleIdentifier: nil))
+    }
+
+    func testTerminalPlanUsesNativeFishWordDeletion() {
+        XCTAssertEqual(
+            TerminalVimExecutionPlan.make(for: .operate(.delete, .wordForward)),
+            TerminalVimExecutionPlan(bridgeCommand: "delete-word-forward", resultingMode: .normal)
+        )
+    }
+
+    func testTerminalChangeReturnsToInsertMode() {
+        XCTAssertEqual(
+            TerminalVimExecutionPlan.make(for: .operate(.change, .wholeLine)),
+            TerminalVimExecutionPlan(bridgeCommand: "delete-whole-line", resultingMode: .insert)
+        )
+    }
+
+    func testTerminalCrossLineOperatorsAreExplicitlyUnsupported() {
+        XCTAssertNil(TerminalVimExecutionPlan.make(for: .operate(.delete, .lineDown)))
+        XCTAssertNil(TerminalVimExecutionPlan.make(for: .operate(.change, .lineUp)))
+    }
+
     func testHintStateRemembersInsertReturnMode() {
         let state = InteractionState.hint(returnTo: .insert)
 

@@ -2,9 +2,14 @@ import AppKit
 
 struct FocusedEditableElement {
     let processIdentifier: pid_t
+    let bundleIdentifier: String?
     let element: AXUIElement
     let frame: CGRect?
     let prefersPersistentIndicator: Bool
+
+    var isTerminalSurface: Bool {
+        TerminalApplicationPolicy.isTerminal(bundleIdentifier: bundleIdentifier)
+    }
 
     func matches(_ other: FocusedEditableElement) -> Bool {
         processIdentifier == other.processIdentifier && CFEqual(element, other.element)
@@ -29,6 +34,7 @@ final class FocusDetector {
         )
         return FocusedEditableElement(
             processIdentifier: focusedApplication.processIdentifier,
+            bundleIdentifier: runningApplication?.bundleIdentifier,
             element: element,
             frame: frame(of: element),
             prefersPersistentIndicator: runningApplication.map {

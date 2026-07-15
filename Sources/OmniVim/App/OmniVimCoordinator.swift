@@ -8,6 +8,7 @@ final class OmniVimCoordinator {
     private let activator = ElementActivator()
     private let input = InputSynthesizer()
     private lazy var commandExecutor = SyntheticVimCommandExecutor(input: input)
+    private lazy var terminalCommandExecutor = TerminalVimCommandExecutor(input: input)
     private let keyMonitor = GlobalKeyMonitor()
     private let modeIndicator = ModeIndicatorController()
     private let configuration: ModeConfiguration
@@ -117,8 +118,17 @@ final class OmniVimCoordinator {
             presentMode()
             return true
         case let .execute(command):
-            guard let resultingMode = commandExecutor.execute(command) else { return true }
-            diagnosticLog("vim command=\(command)")
+            let executorName: String
+            let resultingMode: BaseVimMode?
+            if focusedEditor?.isTerminalSurface == true {
+                executorName = "terminal"
+                resultingMode = terminalCommandExecutor.execute(command)
+            } else {
+                executorName = "synthetic"
+                resultingMode = commandExecutor.execute(command)
+            }
+            guard let resultingMode else { return true }
+            diagnosticLog("vim command=\(command) executor=\(executorName)")
             updateMode(resultingMode.interactionState, forcePresentation: true)
             return true
         }
@@ -162,6 +172,8 @@ final class OmniVimCoordinator {
         } ?? "unavailable"
         diagnosticLog(
             "focus editor pid=\(current.processIdentifier) "
+                + "bundle=\(current.bundleIdentifier ?? "unknown") "
+                + "terminal=\(current.isTerminalSurface) "
                 + "persistentIndicator=\(current.prefersPersistentIndicator) "
                 + "frame=\(frameDescription)"
         )
