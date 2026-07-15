@@ -10,20 +10,29 @@ final class OmniVimCoordinator {
     private let input = InputSynthesizer()
     private let keyMonitor = GlobalKeyMonitor()
     private let modeIndicator = ModeIndicatorController()
-    private var state: InteractionState = .normal
+    private let configuration: ModeConfiguration
+    private var exitChord: OrderedKeyChord
+    private var state: InteractionState
+    private var focusedEditor: FocusedEditableElement?
+    private var focusTimer: Timer?
 
-    init() {
+    init(configuration: ModeConfiguration = ModeConfiguration()) {
+        self.configuration = configuration
+        self.exitChord = OrderedKeyChord(definition: configuration.insertExitChord)
+        self.state = .inactive
         overlay.onTargetSelected = { [weak self] target in
             self?.selectTarget(target)
         }
     }
 
     func start() {
-        updateMode(.normal)
+        updateMode(.inactive)
         diagnosticLog("coordinator start; AX trusted=\(AXIsProcessTrusted())")
         NSLog("[OmniVim] coordinator start; AX trusted=%@", AXIsProcessTrusted() ? "yes" : "no")
         keyMonitor.onKey = { [weak self] key in self?.handle(key) ?? false }
         keyMonitor.start()
+        synchronizeEditingSession()
+        startFocusMonitoring()
         let promptOptions = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
         if !AXIsProcessTrustedWithOptions(promptOptions) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
@@ -34,6 +43,7 @@ final class OmniVimCoordinator {
 
     func showHints(searchOnly: Bool) {
         if case .hint = state { return }
+        exitChord.resetPendingKey()
         let elements = scanner.elements()
         let filtered = searchOnly
             ? elements.filter { ["AXTextField", "AXTextArea", "AXSearchField"].contains($0.role) }
@@ -44,7 +54,8 @@ final class OmniVimCoordinator {
 
     private func handle(_ key: KeyPress) -> Bool {
         if case .hint = state {
-            if key.isEscape { finishHintMode(); return true }
+            guard key.phase == .down else { return true }
+            if key.isEscape, state.consumesEscape { finishHintMode(); return true }
             if key.isBackspace {
                 if !overlay.popPrefix() { finishHintMode() }
                 return true
@@ -55,9 +66,29 @@ final class OmniVimCoordinator {
             return true
         }
 
-        if key.isEscape { updateMode(.normal); return true }
+        synchronizeEditingSession()
+
+        switch exitChord.handle(key, enabled: state == .insert && focusedEditor != nil) {
+        case .passThrough:
+            break
+        case .consume:
+            return true
+        case .trigger:
+            updateMode(.normal)
+            return true
+        case .replayFirst:
+            input.sendKey(configuration.insertExitChord.first)
+            return true
+        case .replayFirstAndCurrent:
+            input.sendKey(configuration.insertExitChord.first)
+            input.sendKeyDown(key)
+            return true
+        }
+
+        guard key.phase == .down else { return false }
+        if key.isEscape { return false }
         if key.isControlF { showHints(searchOnly: false); return true }
-        guard state == .normal, focus.isEditableFocused else { return false }
+        guard state == .normal, focusedEditor != nil else { return false }
 
         switch key.character {
         case "i", "a": updateMode(.insert); return true
@@ -86,12 +117,68 @@ final class OmniVimCoordinator {
     private func finishHintMode() {
         guard case let .hint(returnTo) = state else { return }
         overlay.dismiss()
-        updateMode(returnTo == .normal ? .normal : .insert)
+        updateMode(returnTo?.interactionState ?? .inactive)
     }
 
-    private func updateMode(_ newState: InteractionState) {
+    private func synchronizeEditingSession() {
+        if case .hint = state { return }
+        guard let current = focus.focusedEditableElement else {
+            if focusedEditor != nil || state != .inactive {
+                focusedEditor = nil
+                exitChord.resetPendingKey()
+                updateMode(.inactive)
+            }
+            return
+        }
+
+        if let focusedEditor, focusedEditor.matches(current) {
+            if focusedEditor.frame != current.frame {
+                self.focusedEditor = current
+                modeIndicator.reposition(anchorAXFrame: current.frame)
+            }
+            return
+        }
+        focusedEditor = current
+        exitChord.resetPendingKey()
+        let frameDescription = current.frame.map {
+            "x=\(Int($0.minX)) y=\(Int($0.minY)) w=\(Int($0.width)) h=\(Int($0.height))"
+        } ?? "unavailable"
+        diagnosticLog(
+            "focus editor pid=\(current.processIdentifier) "
+                + "persistentIndicator=\(current.prefersPersistentIndicator) "
+                + "frame=\(frameDescription)"
+        )
+        updateMode(configuration.initialMode.interactionState, forcePresentation: true)
+    }
+
+    private func startFocusMonitoring() {
+        let timer = Timer(timeInterval: 0.12, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.synchronizeEditingSession()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        focusTimer = timer
+    }
+
+    private func updateMode(_ newState: InteractionState, forcePresentation: Bool = false) {
+        guard state != newState else {
+            if forcePresentation {
+                modeIndicator.update(
+                    newState,
+                    anchorAXFrame: focusedEditor?.frame,
+                    persistentInsert: focusedEditor?.prefersPersistentIndicator == true
+                )
+            }
+            return
+        }
         state = newState
-        modeIndicator.update(newState.label)
+        modeIndicator.update(
+            newState,
+            anchorAXFrame: focusedEditor?.frame,
+            persistentInsert: focusedEditor?.prefersPersistentIndicator == true
+        )
+        diagnosticLog("mode=\(newState.label)")
     }
 
     private func showPermissionNotice() {
