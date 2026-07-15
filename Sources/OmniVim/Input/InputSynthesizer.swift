@@ -9,6 +9,8 @@ final class InputSynthesizer {
         var flags = CGEventFlags()
         if modifiers.contains(.command) { flags.insert(.maskCommand) }
         if modifiers.contains(.option) { flags.insert(.maskAlternate) }
+        if modifiers.contains(.control) { flags.insert(.maskControl) }
+        if modifiers.contains(.shift) { flags.insert(.maskShift) }
         down?.flags = flags
         up?.flags = flags
         markAsSynthesized(down)

@@ -1,5 +1,4 @@
 import AppKit
-import Carbon.HIToolbox
 
 @MainActor
 final class OmniVimCoordinator {
@@ -8,10 +7,12 @@ final class OmniVimCoordinator {
     private let overlay = HintOverlayController()
     private let activator = ElementActivator()
     private let input = InputSynthesizer()
+    private lazy var commandExecutor = SyntheticVimCommandExecutor(input: input)
     private let keyMonitor = GlobalKeyMonitor()
     private let modeIndicator = ModeIndicatorController()
     private let configuration: ModeConfiguration
     private var exitChord: OrderedKeyChord
+    private var vimEngine = VimEngine()
     private var state: InteractionState
     private var focusedEditor: FocusedEditableElement?
     private var focusTimer: Timer?
@@ -44,6 +45,7 @@ final class OmniVimCoordinator {
     func showHints(searchOnly: Bool) {
         if case .hint = state { return }
         exitChord.resetPendingKey()
+        vimEngine.cancelPending()
         let elements = scanner.elements()
         let filtered = searchOnly
             ? elements.filter { ["AXTextField", "AXTextArea", "AXSearchField"].contains($0.role) }
@@ -86,27 +88,40 @@ final class OmniVimCoordinator {
         }
 
         guard key.phase == .down else { return false }
-        if key.isEscape { return false }
-        if key.isControlF { showHints(searchOnly: false); return true }
+        if key.isEscape {
+            if vimEngine.cancelPending() { presentMode() }
+            return false
+        }
+        if key.isControlF {
+            vimEngine.cancelPending()
+            showHints(searchOnly: false)
+            return true
+        }
         guard state == .normal, focusedEditor != nil else { return false }
 
-        switch key.character {
-        case "i", "a": updateMode(.insert); return true
-        case "h": input.sendKey(CGKeyCode(kVK_LeftArrow))
-        case "j": input.sendKey(CGKeyCode(kVK_DownArrow))
-        case "k": input.sendKey(CGKeyCode(kVK_UpArrow))
-        case "l": input.sendKey(CGKeyCode(kVK_RightArrow))
-        case "w": input.sendKey(CGKeyCode(kVK_RightArrow), modifiers: [.option])
-        case "b": input.sendKey(CGKeyCode(kVK_LeftArrow), modifiers: [.option])
-        case "0": input.sendKey(CGKeyCode(kVK_LeftArrow))
-        case "$": input.sendKey(CGKeyCode(kVK_RightArrow), modifiers: [.command])
-        default:
-            return key.character != nil
-                && !key.flags.contains(.maskCommand)
-                && !key.flags.contains(.maskControl)
-                && !key.flags.contains(.maskAlternate)
+        if key.flags.contains(.maskCommand)
+            || key.flags.contains(.maskControl)
+            || key.flags.contains(.maskAlternate) {
+            if vimEngine.cancelPending() { presentMode() }
+            return false
         }
-        return true
+
+        switch vimEngine.handle(character: key.character) {
+        case .passThrough:
+            return false
+        case .consume:
+            presentMode()
+            return true
+        case let .pending(vimOperator):
+            diagnosticLog("operator pending=\(vimOperator.indicatorLabel)")
+            presentMode()
+            return true
+        case let .execute(command):
+            guard let resultingMode = commandExecutor.execute(command) else { return true }
+            diagnosticLog("vim command=\(command)")
+            updateMode(resultingMode.interactionState, forcePresentation: true)
+            return true
+        }
     }
 
     private func selectTarget(_ target: UIElementHint) {
@@ -126,6 +141,7 @@ final class OmniVimCoordinator {
             if focusedEditor != nil || state != .inactive {
                 focusedEditor = nil
                 exitChord.resetPendingKey()
+                vimEngine.cancelPending()
                 updateMode(.inactive)
             }
             return
@@ -140,6 +156,7 @@ final class OmniVimCoordinator {
         }
         focusedEditor = current
         exitChord.resetPendingKey()
+        vimEngine.cancelPending()
         let frameDescription = current.frame.map {
             "x=\(Int($0.minX)) y=\(Int($0.minY)) w=\(Int($0.width)) h=\(Int($0.height))"
         } ?? "unavailable"
@@ -167,7 +184,8 @@ final class OmniVimCoordinator {
                 modeIndicator.update(
                     newState,
                     anchorAXFrame: focusedEditor?.frame,
-                    persistentInsert: focusedEditor?.prefersPersistentIndicator == true
+                    persistentInsert: focusedEditor?.prefersPersistentIndicator == true,
+                    pendingOperator: vimEngine.pendingOperator
                 )
             }
             return
@@ -176,9 +194,19 @@ final class OmniVimCoordinator {
         modeIndicator.update(
             newState,
             anchorAXFrame: focusedEditor?.frame,
-            persistentInsert: focusedEditor?.prefersPersistentIndicator == true
+            persistentInsert: focusedEditor?.prefersPersistentIndicator == true,
+            pendingOperator: vimEngine.pendingOperator
         )
         diagnosticLog("mode=\(newState.label)")
+    }
+
+    private func presentMode() {
+        modeIndicator.update(
+            state,
+            anchorAXFrame: focusedEditor?.frame,
+            persistentInsert: focusedEditor?.prefersPersistentIndicator == true,
+            pendingOperator: vimEngine.pendingOperator
+        )
     }
 
     private func showPermissionNotice() {

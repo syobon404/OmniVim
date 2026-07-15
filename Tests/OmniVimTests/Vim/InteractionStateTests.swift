@@ -136,6 +136,89 @@ final class InteractionStateTests: XCTestCase {
         ))
     }
 
+    func testDeleteWaitsForMotionThenExecutesWordForward() {
+        var engine = VimEngine()
+
+        XCTAssertEqual(engine.handle(character: "d"), .pending(.delete))
+        XCTAssertEqual(engine.pendingOperator, .delete)
+        XCTAssertEqual(
+            engine.handle(character: "w"),
+            .execute(.operate(.delete, .wordForward))
+        )
+        XCTAssertNil(engine.pendingOperator)
+    }
+
+    func testRepeatedOperatorTargetsWholeLine() {
+        var engine = VimEngine()
+
+        XCTAssertEqual(engine.handle(character: "c"), .pending(.change))
+        XCTAssertEqual(
+            engine.handle(character: "c"),
+            .execute(.operate(.change, .wholeLine))
+        )
+    }
+
+    func testInvalidOperatorMotionCancelsPendingCommand() {
+        var engine = VimEngine()
+
+        XCTAssertEqual(engine.handle(character: "d"), .pending(.delete))
+        XCTAssertEqual(engine.handle(character: "q"), .consume)
+        XCTAssertNil(engine.pendingOperator)
+    }
+
+    func testPendingOperatorCanBeCancelled() {
+        var engine = VimEngine()
+
+        _ = engine.handle(character: "d")
+        XCTAssertTrue(engine.cancelPending())
+        XCTAssertFalse(engine.cancelPending())
+    }
+
+    func testDeleteWordFallbackSelectsThenDeletes() {
+        let plan = SyntheticVimExecutionPlan.make(
+            for: .operate(.delete, .wordForward)
+        )
+
+        XCTAssertEqual(plan?.resultingMode, .normal)
+        XCTAssertEqual(plan?.strokes, [
+            SyntheticKeyStroke(kVK_RightArrow, modifiers: [.option, .shift]),
+            SyntheticKeyStroke(kVK_Delete)
+        ])
+    }
+
+    func testChangeToLineEndFallbackEntersInsert() {
+        let plan = SyntheticVimExecutionPlan.make(
+            for: .operate(.change, .lineEnd)
+        )
+
+        XCTAssertEqual(plan?.resultingMode, .insert)
+        XCTAssertEqual(plan?.strokes, [
+            SyntheticKeyStroke(kVK_RightArrow, modifiers: [.command, .shift]),
+            SyntheticKeyStroke(kVK_Delete)
+        ])
+    }
+
+    func testDeleteWholeLineFallbackIncludesNewline() {
+        let plan = SyntheticVimExecutionPlan.make(
+            for: .operate(.delete, .wholeLine)
+        )
+
+        XCTAssertEqual(plan?.strokes, [
+            SyntheticKeyStroke(kVK_LeftArrow, modifiers: [.command]),
+            SyntheticKeyStroke(kVK_RightArrow, modifiers: [.command, .shift]),
+            SyntheticKeyStroke(kVK_RightArrow, modifiers: [.shift]),
+            SyntheticKeyStroke(kVK_Delete)
+        ])
+    }
+
+    func testZeroUsesRealLineStartFallback() {
+        let plan = SyntheticVimExecutionPlan.make(for: .move(.lineStart))
+
+        XCTAssertEqual(plan?.strokes, [
+            SyntheticKeyStroke(kVK_LeftArrow, modifiers: [.command])
+        ])
+    }
+
     private func makeChord() -> OrderedKeyChord {
         OrderedKeyChord(definition: OrderedKeyChordDefinition(
             first: CGKeyCode(kVK_ANSI_J),

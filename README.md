@@ -45,12 +45,14 @@ deterministic marker layout and AX snapshot decoding.
 
 ## Source layout
 
-- `App`: application lifecycle, coordinator and the single interaction state.
+- `App`: application lifecycle and top-level coordination.
+- `Vim`: Vim mode engine, command execution, focused editing sessions and mode presentation.
+  Text-buffer components will live here as they are introduced.
 - `Input`: global key monitoring and synthesized keyboard/mouse input.
-- `Accessibility`: AX scanning, focus detection and low-level AX operations.
+- `Accessibility`: shared AX scanning and low-level AX operations.
 - `Activation`: target activation policy and fallback sequencing.
 - `Hints`: pure hint code, visibility, deduplication and layout engines.
-- `UI`: overlay panels, markers and the mode indicator.
+- `UI`: hint overlay panels and markers.
 - `Inspector`: AX inspector and snapshot recording.
 - `Diagnostics`: diagnostic logging.
 
@@ -71,3 +73,19 @@ swift run
 
 The Swift package remains available as a lightweight compiler/test harness. The Xcode app target is
 the canonical development and debugging surface.
+
+## Thanks
+
+OmniVim is informed by the work and ideas in these projects:
+
+- [VimMode.spoon](https://github.com/dbalatero/VimMode.spoon) for demonstrating system-wide Vim
+  motions and operators on macOS, including Accessibility-backed and keyboard-fallback strategies.
+- [CodeMirror Vim](https://github.com/replit/codemirror-vim) for its composable Vim command,
+  operator, motion and key-mapping model.
+- [VSCodeVim](https://github.com/VSCodeVim/Vim) for its extensive Vim emulation behavior and
+  operator-pending mode semantics.
+- [Vimac](https://github.com/nchudleigh/vimac) for its native Swift implementation of macOS
+  Accessibility-driven hints and keyboard navigation.
+
+Thank you to their maintainers and contributors for making their work available to study and learn
+from. OmniVim does not imply endorsement by or affiliation with these projects.

@@ -121,6 +121,7 @@ final class ModeIndicatorController {
         _ state: InteractionState,
         anchorAXFrame: CGRect?,
         persistentInsert: Bool = false,
+        pendingOperator: VimOperator? = nil,
         transition: Bool = true
     ) {
         self.anchorAXFrame = anchorAXFrame
@@ -129,7 +130,7 @@ final class ModeIndicatorController {
             return
         }
 
-        applyAppearance(for: state)
+        applyAppearance(for: state, pendingOperator: pendingOperator)
         reposition(anchorAXFrame: anchorAXFrame)
         guard transition else { return }
         show()
@@ -153,7 +154,17 @@ final class ModeIndicatorController {
         panel.setFrame(placement, display: panel.isVisible)
     }
 
-    private func applyAppearance(for state: InteractionState) {
+    private func applyAppearance(for state: InteractionState, pendingOperator: VimOperator?) {
+        if state == .normal, let pendingOperator {
+            glyphLabel.stringValue = pendingOperator.indicatorGlyph
+            modeLabel.stringValue = pendingOperator.indicatorLabel
+            accentView.layer?.backgroundColor = switch pendingOperator {
+            case .delete: NSColor.systemRed.cgColor
+            case .change: NSColor.systemOrange.cgColor
+            }
+            return
+        }
+
         switch state {
         case .inactive:
             break
