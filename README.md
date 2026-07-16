@@ -1,132 +1,265 @@
 # OmniVim
 
-OmniVim is a macOS menu-bar prototype that combines Vim-style text navigation with Homerow-style accessibility hints.
+Vim-style text editing and keyboard-driven UI navigation across macOS.
 
-## Supported commands
+OmniVim is an experimental menu-bar app that brings modes, motions, operators, and
+Vimium-style hints to native text fields and selected terminal programs. It identifies the
+focused editing session, chooses an application-specific execution adapter, and yields control to
+programs that already provide their own modal editing.
+
+> [!IMPORTANT]
+> OmniVim is an early prototype. Accessibility behavior varies between macOS applications, and
+> terminal support is currently focused on Kitty, fish, and `agy`.
+
+## Highlights
+
+- Start each focused editor in Insert mode; hold `j`, then press `k` to enter Normal mode.
+- Navigate with `h`, `j`, `k`, `l`, `w`, `b`, `0`, and `$`.
+- Compose operators and motions such as `dw`, `db`, `d$`, `cw`, and `cc`.
+- Press `Control-F` to label and activate accessible controls without reaching for the mouse.
+- Keep mode state scoped to the focused editor or terminal foreground process.
+- Bypass Vim, Neovim, Helix, and Kakoune so native modal input remains untouched.
+- Fail open when a target or terminal session cannot be identified reliably.
+
+## Compatibility
+
+| Surface | Status | How OmniVim interacts with it |
+| --- | --- | --- |
+| Native macOS text fields | Supported | Synthesized macOS editing and selection shortcuts |
+| Accessible buttons, links, menus, and rows | Partial | Accessibility actions with role-specific fallbacks |
+| Chromium and Electron controls | Partial | Depends on the application's Accessibility and event bridge |
+| Kitty + fish prompt | Supported | Kitty session detection plus a fish `commandline` companion |
+| Kitty + `agy` | Experimental | Readline-style keyboard adapter |
+| Vim, Neovim, Helix, and Kakoune | Bypassed | Input is returned to the program unchanged |
+| SSH, unknown shells, and unknown TUIs | Pass-through | OmniVim remains inactive rather than guessing |
+| Other terminal emulators | Not yet integrated | Terminal window detection exists, but foreground-program resolution is Kitty-specific |
+
+## Quick start
+
+### 1. Build the app
+
+OmniVim currently ships as a development build. Xcode is required.
+
+```sh
+git clone git@github.com:syobon404/OmniVim.git
+cd OmniVim
+./scripts/build-app.sh
+open OmniVim.app
+```
+
+The script builds the canonical Xcode target and places `OmniVim.app` in the repository root.
+
+### 2. Grant Accessibility permission
+
+Open the OmniVim menu-bar item and choose **Open Accessibility Settings**, then enable OmniVim in
+**Privacy & Security → Accessibility**. This permission is required for cross-application focus,
+UI discovery, global keyboard observation, and synthesized input.
+
+For stable authorization across rebuilds, select your Personal Team under the OmniVim target's
+**Signing & Capabilities** settings. Ad-hoc signatures may cause macOS to treat a rebuilt app as a
+new executable.
+
+### 3. Try text editing
+
+1. Focus a text field in an app such as Notes.
+2. Type normally in Insert mode.
+3. Hold `j`, then press `k`; the mode pill should change to **NORMAL**.
+4. Try `w`, `b`, or `dw`.
+5. Press `i` or `a` to return to Insert mode.
+
+The exit chord is ordered: `j` must already be held when `k` is pressed. A standalone `j` remains
+ordinary text input.
+
+### 4. Try UI hints
+
+Press `Control-F` to label visible buttons, links, menu items, rows, and editable controls. Type a
+hint code to narrow the overlay; the final target activates automatically. `Backspace` removes one
+prefix character and `Esc` dismisses the overlay.
+
+Hint codes are prefix-free and variable length. Markers are deduplicated before layout and rendered
+in one transparent panel per display.
+
+## Commands
 
 ### Modes and hints
 
-- [x] Hold `j`, then press `k`: leave Insert mode and enter Normal mode.
-- [x] `i` / `a`: leave Normal mode and return to Insert mode.
-- [x] `Esc`: cancel a pending operator or dismiss hints; otherwise pass through to macOS.
-- [x] `Control-F`: show hints for buttons, links, menu items and editable controls.
-- [x] Search hints from the menu; `s` remains a normal input key.
+| Input | Result |
+| --- | --- |
+| Hold `j`, then press `k` | Insert → Normal |
+| `i` / `a` | Normal → Insert |
+| `Esc` | Cancel a pending operator or dismiss hints; otherwise pass through to macOS |
+| `Control-F` | Show hints for accessible UI elements |
+| Menu → **Search UI elements** | Open searchable hints without reserving `s` |
 
-### Motions
+### Motions and operators
 
-- [x] `h` / `l`: move left or right by one character.
-- [x] `j` / `k`: move down or up by one line.
-- [x] `w` / `b`: move forward or backward by one word.
-- [x] `0` / `$`: move to the start or end of the line.
+| Command | Native text | fish | `agy` | Meaning |
+| --- | :---: | :---: | :---: | --- |
+| `h` / `l` | ✓ | ✓ | ✓ | Move left or right by one character |
+| `j` / `k` | ✓ | ✓ | ✓ | Move down or up by one line/history entry |
+| `w` / `b` | ✓ | ✓ | ✓ | Move forward or backward by one word |
+| `0` / `$` | ✓ | ✓ | ✓ | Move to the start or end of the line |
+| `dh` / `dl` | ✓ | ✓ | ✓ | Delete one character left or right |
+| `dw` / `db` | ✓ | ✓ | ✓ | Delete forward or backward by one word |
+| `d0` / `d$` | ✓ | ✓ | ✓ | Delete to the start or end of the line |
+| `dd` | ✓ | ✓ | ✓ | Delete the current line or input buffer |
+| `ch`, `cl`, `cw`, `cb`, `c0`, `c$`, `cc` | ✓ | ✓ | ✓ | Delete the matching range and enter Insert mode |
+| `dj` / `dk`, `cj` / `ck` | ✓ | — | — | Cross-line operation; terminal semantics are not implemented |
 
-### Operators
+OmniVim implements a focused subset of Vim rather than emulating a complete Vim text buffer.
+Exact word and line behavior is delegated to each adapter and may differ slightly from native Vim.
 
-- [x] `dh` / `dl`: delete one character to the left or right.
-- [x] `dw` / `db`: delete forward or backward by one word.
-- [x] `d0` / `d$`: delete to the start or end of the line.
-- [x] `dd`: delete the whole line.
-- [x] `ch` / `cl`, `cw` / `cb`, `c0` / `c$`, `cc`: delete the matching range and enter Insert mode.
-- [ ] `dj` / `dk`, `cj` / `ck`: cross-line terminal operators.
+## Application-aware modes
 
-UI hints use Vimium-style variable-length codes. Typing narrows the visible markers; the last
-remaining marker activates automatically. `Backspace` removes one prefix character and `Esc`
-dismisses the overlay. Markers are rendered in one transparent panel per display.
-
-The app requires Accessibility permission because macOS only exposes cross-app focus, UI hierarchy and global keyboard events through that permission.
-
-## Development
-
-Open `OmniVim.xcodeproj`, select the `OmniVim` scheme and run on My Mac. This is a real macOS
-application target with the fixed bundle identifier `com.omnivim.app`; do not open `Package.swift`
-for Accessibility debugging.
-
-The project currently uses ad-hoc “Sign to Run Locally” because no Apple Development identity is
-installed. For stable Accessibility authorization across rebuilds, select your Personal Team in
-the OmniVim target's Signing & Capabilities settings.
-
-Debug builds add **Open AX Inspector** to the menu-bar menu. Open the inspector while the target app
-is frontmost, capture its AX hierarchy, then save a JSON fixture. Snapshots are written to:
+Vim mode belongs to the focused editing session, not to the whole system. When focus changes,
+OmniVim starts the appropriate session in its initial mode and resets incomplete operators.
 
 ```text
-~/Library/Logs/OmniVim/Snapshots/
+Focused control or terminal process
+                 │
+                 ▼
+        Classify editing surface
+                 │
+       ┌─────────┼──────────┬──────────────┐
+       ▼         ▼          ▼              ▼
+ Native text   fish       agy        Native modal / unknown
+       │         │          │              │
+ Synthetic     fish      Readline       Bypass or
+ executor    companion    adapter        pass-through
 ```
 
-Run the HintEngine and fixture tests with either Xcode (`Command-U`) or:
+This boundary prevents Normal mode from leaking from one app, text field, Kitty window, or terminal
+foreground process into another.
 
-```sh
-./scripts/test.sh
-```
+## Terminal integration
 
-### Terminal integration (Kitty + fish)
+Terminal command lines are not exposed as native macOS text buffers. OmniVim therefore asks Kitty
+which process owns the focused window and selects an adapter for that program.
 
-Terminal command lines are owned by the shell rather than exposed as a native macOS text buffer.
-OmniVim therefore sends Vim commands to a small fish companion, which edits the real command line
-with fish's `commandline` API. Install the development integration with:
+### Configure Kitty session detection
 
-```sh
-./scripts/install-fish-integration.sh
-```
-
-OmniVim also needs Kitty's Unix remote-control socket to identify the focused window and its
-foreground process. Add these settings to `kitty.conf`, then fully restart Kitty:
+Add the following to `kitty.conf`, then fully restart Kitty:
 
 ```conf
 allow_remote_control socket-only
 listen_on unix:/tmp/omnivim-kitty-{kitty_pid}
 ```
 
-Then open a new Kitty tab or window. OmniVim writes one local command to
-`~/Library/Caches/OmniVim/terminal-command` and sends the reserved `F20` trigger; the companion
-consumes the command and removes the file. Motions, `dw`/`db`/`d0`/`d$`/`dd`, and their `c`
-variants are supported as listed above. Cross-line terminal operators remain unchecked until their
-shell-buffer semantics are implemented.
+The local Unix socket is used to resolve the focused Kitty window and foreground process. If the
+socket is unavailable or the program is unknown, OmniVim leaves keyboard input untouched.
 
-The first version targets an interactive fish prompt. Full-screen terminal applications have their
-own input model, so OmniVim classifies the foreground program before intercepting input:
+### Install the fish companion
 
-- fish uses the shell companion; other shells pass through until they gain their own companion.
-- `agy` uses the Readline-style TUI adapter.
-- Vim, Neovim, Helix and Kakoune bypass OmniVim completely.
-- SSH and unknown terminal programs pass input through unchanged.
+```sh
+./scripts/install-fish-integration.sh
+```
 
-Changing the focused Kitty window or foreground process creates a new editing session and resets
-OmniVim to that program's initial mode. If the Kitty socket cannot be resolved, OmniVim fails open
-and leaves terminal input untouched.
+Open a new fish session after installation. For each supported command, OmniVim writes a private
+command file under `~/Library/Caches/OmniVim/` and sends a reserved `F20` trigger. The companion
+consumes the command and edits the real buffer through fish's `commandline` API.
 
-The fixture-driven tests cover prefix-free hint codes, visibility clipping, hit-test rejection,
-deterministic marker layout and AX snapshot decoding.
+If fish configuration is managed declaratively, add
+`Integrations/fish/conf.d/omnivim.fish` to that configuration instead of running the installer.
 
-## Source layout
+### Foreground-program policy
 
-- `App`: application lifecycle and top-level coordination.
-- `Vim`: Vim mode engine, command execution, focused editing and terminal sessions, program
-  classification, and mode presentation.
-  Text-buffer components will live here as they are introduced.
-- `Input`: global key monitoring and synthesized keyboard/mouse input.
-- `Accessibility`: shared AX scanning and low-level AX operations.
-- `Activation`: target activation policy and fallback sequencing.
-- `Hints`: pure hint code, visibility, deduplication and layout engines.
-- `UI`: hint overlay panels and markers.
-- `Inspector`: AX inspector and snapshot recording.
-- `Diagnostics`: diagnostic logging.
+- `fish` uses the shell companion.
+- `agy` uses the experimental Readline-style adapter.
+- Vim, Neovim, Helix, and Kakoune bypass OmniVim completely.
+- Other shells, SSH sessions, and unknown TUIs pass through unchanged.
+- Changing the Kitty window or foreground PID starts a fresh editing session.
 
-The coordinator owns the interaction flow. UI components report target selection but do not
-activate other applications directly; activation is isolated behind `ElementActivator`.
+## Troubleshooting
 
-Build the same Xcode app used during development and copy it to the repository root:
+### The mode pill does not appear
+
+Confirm that OmniVim is running and enabled under **Privacy & Security → Accessibility**. Focus a
+supported editable control; the pill intentionally stays hidden when the current surface is
+inactive or unsupported. Insert mode also auto-hides after a short confirmation animation in most
+apps.
+
+### `j` + `k` does not enter Normal mode
+
+Press and hold `j`, then press `k` before releasing `j`. The chord is not a sequential `jk` timeout.
+If the app does not expose a focused editable element through Accessibility, OmniVim remains
+inactive.
+
+### Terminal commands do not work
+
+Verify all of the following:
+
+1. Kitty was fully restarted after adding the remote-control socket settings.
+2. A new fish session was opened after installing the companion.
+3. The foreground program is `fish` or `agy` rather than an unsupported shell or TUI.
+4. `~/Library/Caches/OmniVim/fish-companion-ready` exists when testing fish.
+
+### Neovim still receives OmniVim behavior
+
+Check that Kitty session detection is working. Until the foreground program has been resolved,
+OmniVim deliberately remains inactive. The diagnostic log should identify `nvim` as `nativeModal`.
+
+### A hint moves the pointer but does not activate a control
+
+Some controls report a successful Accessibility action without changing application state.
+System Settings rows require selection semantics, while some Chromium/Electron controls reject both
+Accessibility and externally synthesized clicks. These cases require application-specific
+activation strategies and remain an active area of development.
+
+### Diagnostic files
+
+```text
+~/Library/Logs/OmniVim.log
+~/Library/Logs/OmniVim/Snapshots/
+```
+
+The main log rotates at approximately 2 MiB. Debug builds expose **Open AX Inspector** in the
+menu-bar menu; use it while the target app is frontmost to capture an Accessibility snapshot.
+
+## Development
+
+Open `OmniVim.xcodeproj`, select the `OmniVim` scheme, and run on **My Mac**. The Xcode app target,
+with bundle identifier `com.omnivim.app`, is the canonical development and Accessibility-debugging
+surface. `Package.swift` remains available as a lightweight compiler and test harness.
+
+Run the test suite with Xcode (`Command-U`) or:
+
+```sh
+./scripts/test.sh
+```
+
+Build the signed development app used for manual testing with:
 
 ```sh
 ./scripts/build-app.sh
 ```
 
-## Manual package build
+### Source layout
 
-```sh
-swift run
-```
+- `App`: application lifecycle and top-level coordination.
+- `Vim`: mode engine, command execution, focused editing and terminal sessions, program
+  classification, and mode presentation.
+- `Input`: global key monitoring and synthesized keyboard or mouse input.
+- `Accessibility`: shared scanning and low-level Accessibility operations.
+- `Activation`: target activation policy and fallback sequencing.
+- `Hints`: pure hint code, visibility, deduplication, and layout engines.
+- `UI`: hint overlay panels and markers.
+- `Inspector`: Accessibility inspector and snapshot recording.
+- `Diagnostics`: diagnostic logging.
 
-The Swift package remains available as a lightweight compiler/test harness. The Xcode app target is
-the canonical development and debugging surface.
+The coordinator owns interaction flow. UI components report a selected target, while activation is
+isolated behind `ElementActivator`. Terminal adapters translate the same Vim command model into the
+editing primitives offered by each foreground program.
+
+## Roadmap
+
+- Expand the Vim command grammar and operator/motion coverage.
+- Add adapters for more shells, terminal emulators, and coding-agent TUIs.
+- Detect and bypass additional applications with native modal editing.
+- Improve verified activation for Chromium and Electron accessibility targets.
+- Make mode-switch chords, indicators, and application policies user-configurable.
+- Introduce richer text-buffer context without sacrificing low resource usage.
+
+See [TODO.md](TODO.md) for confirmed limitations and current activation experiments.
 
 ## Thanks
 
@@ -135,7 +268,7 @@ OmniVim is informed by the work and ideas in these projects:
 - [VimMode.spoon](https://github.com/dbalatero/VimMode.spoon) for demonstrating system-wide Vim
   motions and operators on macOS, including Accessibility-backed and keyboard-fallback strategies.
 - [CodeMirror Vim](https://github.com/replit/codemirror-vim) for its composable Vim command,
-  operator, motion and key-mapping model.
+  operator, motion, and key-mapping model.
 - [VSCodeVim](https://github.com/VSCodeVim/Vim) for its extensive Vim emulation behavior and
   operator-pending mode semantics.
 - [Vimac](https://github.com/nchudleigh/vimac) for its native Swift implementation of macOS
