@@ -9,6 +9,8 @@ final class OmniVimCoordinator {
     private let input = InputSynthesizer()
     private lazy var commandExecutor = SyntheticVimCommandExecutor(input: input)
     private lazy var terminalCommandExecutor = TerminalVimCommandExecutor(input: input)
+    private lazy var readlineTUICommandExecutor = ReadlineTUIVimCommandExecutor(input: input)
+    private let terminalSessionResolver = TerminalSessionResolver()
     private let keyMonitor = GlobalKeyMonitor()
     private let modeIndicator = ModeIndicatorController()
     private let configuration: ModeConfiguration
@@ -16,6 +18,9 @@ final class OmniVimCoordinator {
     private var vimEngine = VimEngine()
     private var state: InteractionState
     private var focusedEditor: FocusedEditableElement?
+    private var terminalProgramContext: TerminalProgramContext?
+    private var terminalResolutionTask: Task<Void, Never>?
+    private var lastTerminalResolutionDate = Date.distantPast
     private var focusTimer: Timer?
 
     init(configuration: ModeConfiguration = ModeConfiguration()) {
@@ -71,6 +76,11 @@ final class OmniVimCoordinator {
 
         synchronizeEditingSession()
 
+        if focusedEditor?.isTerminalSurface == true,
+           terminalProgramContext?.behavior.allowsOmniVim != true {
+            return false
+        }
+
         switch exitChord.handle(key, enabled: state == .insert && focusedEditor != nil) {
         case .passThrough:
             break
@@ -121,8 +131,16 @@ final class OmniVimCoordinator {
             let executorName: String
             let resultingMode: BaseVimMode?
             if focusedEditor?.isTerminalSurface == true {
-                executorName = "terminal"
-                resultingMode = terminalCommandExecutor.execute(command)
+                switch terminalProgramContext?.behavior {
+                case .shellPrompt:
+                    executorName = "terminal-shell"
+                    resultingMode = terminalCommandExecutor.execute(command)
+                case .adaptedTUI(.readlineTUI):
+                    executorName = "terminal-readline-tui"
+                    resultingMode = readlineTUICommandExecutor.execute(command)
+                case .nativeModal, .passThrough, nil:
+                    return false
+                }
             } else {
                 executorName = "synthetic"
                 resultingMode = commandExecutor.execute(command)
@@ -149,7 +167,13 @@ final class OmniVimCoordinator {
         if case .hint = state { return }
         guard let current = focus.focusedEditableElement else {
             if focusedEditor != nil || state != .inactive {
+                if focusedEditor?.isTerminalSurface == true {
+                    terminalCommandExecutor.cancelPendingCommand()
+                }
                 focusedEditor = nil
+                terminalProgramContext = nil
+                terminalResolutionTask?.cancel()
+                terminalResolutionTask = nil
                 exitChord.resetPendingKey()
                 vimEngine.cancelPending()
                 updateMode(.inactive)
@@ -162,8 +186,12 @@ final class OmniVimCoordinator {
                 self.focusedEditor = current
                 modeIndicator.reposition(anchorAXFrame: current.frame)
             }
+            requestTerminalResolutionIfNeeded(for: current)
             return
         }
+        terminalResolutionTask?.cancel()
+        terminalResolutionTask = nil
+        terminalProgramContext = nil
         focusedEditor = current
         exitChord.resetPendingKey()
         vimEngine.cancelPending()
@@ -177,7 +205,70 @@ final class OmniVimCoordinator {
                 + "persistentIndicator=\(current.prefersPersistentIndicator) "
                 + "frame=\(frameDescription)"
         )
-        updateMode(configuration.initialMode.interactionState, forcePresentation: true)
+        if current.isTerminalSurface {
+            terminalCommandExecutor.cancelPendingCommand()
+            updateMode(.inactive, forcePresentation: true)
+            requestTerminalResolutionIfNeeded(for: current, force: true)
+        } else {
+            updateMode(configuration.initialMode.interactionState, forcePresentation: true)
+        }
+    }
+
+    private func requestTerminalResolutionIfNeeded(
+        for editor: FocusedEditableElement,
+        force: Bool = false
+    ) {
+        guard editor.isTerminalSurface, terminalResolutionTask == nil else { return }
+        let now = Date()
+        guard force || now.timeIntervalSince(lastTerminalResolutionDate) >= 0.4 else { return }
+        lastTerminalResolutionDate = now
+        let processIdentifier = editor.processIdentifier
+        let bundleIdentifier = editor.bundleIdentifier
+
+        terminalResolutionTask = Task { [weak self] in
+            guard let self else { return }
+            let context = await terminalSessionResolver.resolve(
+                bundleIdentifier: bundleIdentifier,
+                terminalProcessIdentifier: processIdentifier
+            )
+            guard !Task.isCancelled else { return }
+            terminalResolutionTask = nil
+            applyTerminalProgramContext(context, expectedTerminalPID: processIdentifier)
+        }
+    }
+
+    private func applyTerminalProgramContext(
+        _ context: TerminalProgramContext?,
+        expectedTerminalPID: pid_t
+    ) {
+        guard let focusedEditor,
+              focusedEditor.isTerminalSurface,
+              focusedEditor.processIdentifier == expectedTerminalPID,
+              terminalProgramContext != context else { return }
+
+        terminalProgramContext = context
+        exitChord.resetPendingKey()
+        vimEngine.cancelPending()
+
+        if context?.behavior != .shellPrompt {
+            terminalCommandExecutor.cancelPendingCommand()
+        }
+
+        if let context {
+            diagnosticLog(
+                "terminal session window=\(context.identity.windowIdentifier) "
+                    + "foregroundPid=\(context.identity.foregroundProcessIdentifier) "
+                    + "executable=\(context.executableName) "
+                    + "behavior=\(context.behavior)"
+            )
+        } else {
+            diagnosticLog("terminal session unresolved pid=\(expectedTerminalPID) behavior=passThrough")
+        }
+
+        let nextState = context?.behavior.allowsOmniVim == true
+            ? configuration.initialMode.interactionState
+            : .inactive
+        updateMode(nextState, forcePresentation: true)
     }
 
     private func startFocusMonitoring() {

@@ -3,6 +3,84 @@ import Carbon.HIToolbox
 @testable import OmniVim
 
 final class InteractionStateTests: XCTestCase {
+    func testTerminalProgramClassifierSelectsShellPrompt() {
+        XCTAssertEqual(TerminalProgramClassifier.classify(executable: "/opt/homebrew/bin/fish"), .shellPrompt)
+        XCTAssertEqual(TerminalProgramClassifier.normalizedExecutableName("-fish"), "fish")
+        XCTAssertEqual(TerminalProgramClassifier.classify(executable: "zsh"), .passThrough)
+    }
+
+    func testTerminalProgramClassifierSelectsAgyAdapter() {
+        XCTAssertEqual(
+            TerminalProgramClassifier.classify(executable: "/Users/test/.local/bin/agy"),
+            .adaptedTUI(.readlineTUI)
+        )
+    }
+
+    func testTerminalProgramClassifierBypassesNativeModalPrograms() {
+        for executable in ["nvim", "vim", "vi", "hx", "kakoune"] {
+            XCTAssertEqual(TerminalProgramClassifier.classify(executable: executable), .nativeModal)
+        }
+    }
+
+    func testTerminalProgramClassifierPassesThroughUnknownAndRemotePrograms() {
+        XCTAssertEqual(TerminalProgramClassifier.classify(executable: "ssh"), .passThrough)
+        XCTAssertEqual(TerminalProgramClassifier.classify(executable: "lazygit"), .passThrough)
+    }
+
+    func testKittySnapshotParserFindsFocusedForegroundProgram() throws {
+        let snapshot = """
+        [{
+          "id": 10,
+          "tabs": [{
+            "id": 20,
+            "windows": [{
+              "id": 30,
+              "foreground_processes": [{
+                "pid": 4242,
+                "cmdline": ["/Users/test/.local/bin/agy", "--continue"]
+              }]
+            }]
+          }]
+        }]
+        """
+
+        let context = try KittySessionSnapshotParser.parse(
+            data: Data(snapshot.utf8),
+            terminalProcessIdentifier: 100
+        )
+
+        XCTAssertEqual(context?.identity, TerminalSessionIdentity(
+            terminalProcessIdentifier: 100,
+            windowIdentifier: "30",
+            foregroundProcessIdentifier: 4242
+        ))
+        XCTAssertEqual(context?.executableName, "agy")
+        XCTAssertEqual(context?.behavior, .adaptedTUI(.readlineTUI))
+    }
+
+    func testReadlineTUIWordDeleteUsesEmacsBinding() {
+        XCTAssertEqual(
+            ReadlineTUIExecutionPlan.make(for: .operate(.delete, .wordBackward)),
+            ReadlineTUIExecutionPlan(
+                strokes: [SyntheticKeyStroke(kVK_ANSI_W, modifiers: [.control])],
+                resultingMode: .normal
+            )
+        )
+    }
+
+    func testReadlineTUIWholeLineChangeClearsBothSidesAndEntersInsert() {
+        XCTAssertEqual(
+            ReadlineTUIExecutionPlan.make(for: .operate(.change, .wholeLine)),
+            ReadlineTUIExecutionPlan(
+                strokes: [
+                    SyntheticKeyStroke(kVK_ANSI_U, modifiers: [.control]),
+                    SyntheticKeyStroke(kVK_ANSI_K, modifiers: [.control])
+                ],
+                resultingMode: .insert
+            )
+        )
+    }
+
     func testTerminalApplicationPolicyRecognizesKitty() {
         XCTAssertTrue(TerminalApplicationPolicy.isTerminal(bundleIdentifier: "net.kovidgoyal.kitty"))
         XCTAssertFalse(TerminalApplicationPolicy.isTerminal(bundleIdentifier: "com.apple.Notes"))

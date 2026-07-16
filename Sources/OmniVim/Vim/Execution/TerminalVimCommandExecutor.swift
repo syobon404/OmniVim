@@ -100,6 +100,16 @@ final class TerminalVimCommandExecutor {
         fileManager.fileExists(atPath: paths.companionMarker.path)
     }
 
+    func cancelPendingCommand() {
+        guard fileManager.fileExists(atPath: paths.commandFile.path) else { return }
+        do {
+            try fileManager.removeItem(at: paths.commandFile)
+            diagnosticLog("terminal bridge pending command cancelled")
+        } catch {
+            diagnosticLog("terminal bridge cleanup failed error=\(error.localizedDescription)")
+        }
+    }
+
     @discardableResult
     func execute(_ command: VimCommand) -> BaseVimMode? {
         guard let plan = TerminalVimExecutionPlan.make(for: command) else {

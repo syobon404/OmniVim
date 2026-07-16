@@ -67,6 +67,14 @@ with fish's `commandline` API. Install the development integration with:
 ./scripts/install-fish-integration.sh
 ```
 
+OmniVim also needs Kitty's Unix remote-control socket to identify the focused window and its
+foreground process. Add these settings to `kitty.conf`, then fully restart Kitty:
+
+```conf
+allow_remote_control socket-only
+listen_on unix:/tmp/omnivim-kitty-{kitty_pid}
+```
+
 Then open a new Kitty tab or window. OmniVim writes one local command to
 `~/Library/Caches/OmniVim/terminal-command` and sends the reserved `F20` trigger; the companion
 consumes the command and removes the file. Motions, `dw`/`db`/`d0`/`d$`/`dd`, and their `c`
@@ -74,7 +82,16 @@ variants are supported as listed above. Cross-line terminal operators remain unc
 shell-buffer semantics are implemented.
 
 The first version targets an interactive fish prompt. Full-screen terminal applications have their
-own input model and are outside this bridge's current scope.
+own input model, so OmniVim classifies the foreground program before intercepting input:
+
+- fish uses the shell companion; other shells pass through until they gain their own companion.
+- `agy` uses the Readline-style TUI adapter.
+- Vim, Neovim, Helix and Kakoune bypass OmniVim completely.
+- SSH and unknown terminal programs pass input through unchanged.
+
+Changing the focused Kitty window or foreground process creates a new editing session and resets
+OmniVim to that program's initial mode. If the Kitty socket cannot be resolved, OmniVim fails open
+and leaves terminal input untouched.
 
 The fixture-driven tests cover prefix-free hint codes, visibility clipping, hit-test rejection,
 deterministic marker layout and AX snapshot decoding.
@@ -82,7 +99,8 @@ deterministic marker layout and AX snapshot decoding.
 ## Source layout
 
 - `App`: application lifecycle and top-level coordination.
-- `Vim`: Vim mode engine, command execution, focused editing sessions and mode presentation.
+- `Vim`: Vim mode engine, command execution, focused editing and terminal sessions, program
+  classification, and mode presentation.
   Text-buffer components will live here as they are introduced.
 - `Input`: global key monitoring and synthesized keyboard/mouse input.
 - `Accessibility`: shared AX scanning and low-level AX operations.

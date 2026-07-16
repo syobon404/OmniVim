@@ -35,6 +35,8 @@
 		B1000000000000000000001F /* VimEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001F /* VimEngine.swift */; };
 		B10000000000000000000020 /* SyntheticVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000020 /* SyntheticVimCommandExecutor.swift */; };
 		B10000000000000000000021 /* TerminalVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000021 /* TerminalVimCommandExecutor.swift */; };
+		B10000000000000000000022 /* TerminalSessionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000022 /* TerminalSessionResolver.swift */; };
+		B10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +81,8 @@
 		F1000000000000000000001F /* VimEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VimEngine.swift; sourceTree = "<group>"; };
 		F10000000000000000000020 /* SyntheticVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticVimCommandExecutor.swift; sourceTree = "<group>"; };
 		F10000000000000000000021 /* TerminalVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalVimCommandExecutor.swift; sourceTree = "<group>"; };
+		F10000000000000000000022 /* TerminalSessionResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalSessionResolver.swift; sourceTree = "<group>"; };
+		F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadlineTUIVimCommandExecutor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -308,6 +312,7 @@
 			isa = PBXGroup;
 			children = (
 				F10000000000000000000004 /* FocusDetector.swift */,
+				F10000000000000000000022 /* TerminalSessionResolver.swift */,
 			);
 			path = Session;
 			sourceTree = "<group>";
@@ -323,6 +328,7 @@
 		G1000000000000000000001F /* Execution */ = {
 			isa = PBXGroup;
 			children = (
+				F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */,
 				F10000000000000000000020 /* SyntheticVimCommandExecutor.swift */,
 				F10000000000000000000021 /* TerminalVimCommandExecutor.swift */,
 			);
@@ -451,6 +457,8 @@
 				B1000000000000000000001F /* VimEngine.swift in Sources */,
 				B10000000000000000000020 /* SyntheticVimCommandExecutor.swift in Sources */,
 				B10000000000000000000021 /* TerminalVimCommandExecutor.swift in Sources */,
+				B10000000000000000000022 /* TerminalSessionResolver.swift in Sources */,
+				B10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
