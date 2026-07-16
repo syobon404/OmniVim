@@ -1,5 +1,4 @@
 import AppKit
-import Carbon.HIToolbox
 
 @MainActor
 final class OmniVimCoordinator {
@@ -8,22 +7,39 @@ final class OmniVimCoordinator {
     private let overlay = HintOverlayController()
     private let activator = ElementActivator()
     private let input = InputSynthesizer()
+    private lazy var commandExecutor = SyntheticVimCommandExecutor(input: input)
+    private lazy var terminalCommandExecutor = TerminalVimCommandExecutor(input: input)
+    private lazy var readlineTUICommandExecutor = ReadlineTUIVimCommandExecutor(input: input)
+    private let terminalSessionResolver = TerminalSessionResolver()
     private let keyMonitor = GlobalKeyMonitor()
     private let modeIndicator = ModeIndicatorController()
-    private var state: InteractionState = .normal
+    private let configuration: ModeConfiguration
+    private var exitChord: OrderedKeyChord
+    private var vimEngine = VimEngine()
+    private var state: InteractionState
+    private var focusedEditor: FocusedEditableElement?
+    private var terminalProgramContext: TerminalProgramContext?
+    private var terminalResolutionTask: Task<Void, Never>?
+    private var lastTerminalResolutionDate = Date.distantPast
+    private var focusTimer: Timer?
 
-    init() {
+    init(configuration: ModeConfiguration = ModeConfiguration()) {
+        self.configuration = configuration
+        self.exitChord = OrderedKeyChord(definition: configuration.insertExitChord)
+        self.state = .inactive
         overlay.onTargetSelected = { [weak self] target in
             self?.selectTarget(target)
         }
     }
 
     func start() {
-        updateMode(.normal)
+        updateMode(.inactive)
         diagnosticLog("coordinator start; AX trusted=\(AXIsProcessTrusted())")
         NSLog("[OmniVim] coordinator start; AX trusted=%@", AXIsProcessTrusted() ? "yes" : "no")
         keyMonitor.onKey = { [weak self] key in self?.handle(key) ?? false }
         keyMonitor.start()
+        synchronizeEditingSession()
+        startFocusMonitoring()
         let promptOptions = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
         if !AXIsProcessTrustedWithOptions(promptOptions) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
@@ -34,6 +50,8 @@ final class OmniVimCoordinator {
 
     func showHints(searchOnly: Bool) {
         if case .hint = state { return }
+        exitChord.resetPendingKey()
+        vimEngine.cancelPending()
         let elements = scanner.elements()
         let filtered = searchOnly
             ? elements.filter { ["AXTextField", "AXTextArea", "AXSearchField"].contains($0.role) }
@@ -44,7 +62,8 @@ final class OmniVimCoordinator {
 
     private func handle(_ key: KeyPress) -> Bool {
         if case .hint = state {
-            if key.isEscape { finishHintMode(); return true }
+            guard key.phase == .down else { return true }
+            if key.isEscape, state.consumesEscape { finishHintMode(); return true }
             if key.isBackspace {
                 if !overlay.popPrefix() { finishHintMode() }
                 return true
@@ -55,27 +74,82 @@ final class OmniVimCoordinator {
             return true
         }
 
-        if key.isEscape { updateMode(.normal); return true }
-        if key.isControlF { showHints(searchOnly: false); return true }
-        guard state == .normal, focus.isEditableFocused else { return false }
+        synchronizeEditingSession()
 
-        switch key.character {
-        case "i", "a": updateMode(.insert); return true
-        case "h": input.sendKey(CGKeyCode(kVK_LeftArrow))
-        case "j": input.sendKey(CGKeyCode(kVK_DownArrow))
-        case "k": input.sendKey(CGKeyCode(kVK_UpArrow))
-        case "l": input.sendKey(CGKeyCode(kVK_RightArrow))
-        case "w": input.sendKey(CGKeyCode(kVK_RightArrow), modifiers: [.option])
-        case "b": input.sendKey(CGKeyCode(kVK_LeftArrow), modifiers: [.option])
-        case "0": input.sendKey(CGKeyCode(kVK_LeftArrow))
-        case "$": input.sendKey(CGKeyCode(kVK_RightArrow), modifiers: [.command])
-        default:
-            return key.character != nil
-                && !key.flags.contains(.maskCommand)
-                && !key.flags.contains(.maskControl)
-                && !key.flags.contains(.maskAlternate)
+        if focusedEditor?.isTerminalSurface == true,
+           terminalProgramContext?.behavior.allowsOmniVim != true {
+            return false
         }
-        return true
+
+        switch exitChord.handle(key, enabled: state == .insert && focusedEditor != nil) {
+        case .passThrough:
+            break
+        case .consume:
+            return true
+        case .trigger:
+            updateMode(.normal)
+            return true
+        case .replayFirst:
+            input.sendKey(configuration.insertExitChord.first)
+            return true
+        case .replayFirstAndCurrent:
+            input.sendKey(configuration.insertExitChord.first)
+            input.sendKeyDown(key)
+            return true
+        }
+
+        guard key.phase == .down else { return false }
+        if key.isEscape {
+            if vimEngine.cancelPending() { presentMode() }
+            return false
+        }
+        if key.isControlF {
+            vimEngine.cancelPending()
+            showHints(searchOnly: false)
+            return true
+        }
+        guard state == .normal, focusedEditor != nil else { return false }
+
+        if key.flags.contains(.maskCommand)
+            || key.flags.contains(.maskControl)
+            || key.flags.contains(.maskAlternate) {
+            if vimEngine.cancelPending() { presentMode() }
+            return false
+        }
+
+        switch vimEngine.handle(character: key.character) {
+        case .passThrough:
+            return false
+        case .consume:
+            presentMode()
+            return true
+        case let .pending(vimOperator):
+            diagnosticLog("operator pending=\(vimOperator.indicatorLabel)")
+            presentMode()
+            return true
+        case let .execute(command):
+            let executorName: String
+            let resultingMode: BaseVimMode?
+            if focusedEditor?.isTerminalSurface == true {
+                switch terminalProgramContext?.behavior {
+                case .shellPrompt:
+                    executorName = "terminal-shell"
+                    resultingMode = terminalCommandExecutor.execute(command)
+                case .adaptedTUI(.readlineTUI):
+                    executorName = "terminal-readline-tui"
+                    resultingMode = readlineTUICommandExecutor.execute(command)
+                case .nativeModal, .passThrough, nil:
+                    return false
+                }
+            } else {
+                executorName = "synthetic"
+                resultingMode = commandExecutor.execute(command)
+            }
+            guard let resultingMode else { return true }
+            diagnosticLog("vim command=\(command) executor=\(executorName)")
+            updateMode(resultingMode.interactionState, forcePresentation: true)
+            return true
+        }
     }
 
     private func selectTarget(_ target: UIElementHint) {
@@ -86,12 +160,156 @@ final class OmniVimCoordinator {
     private func finishHintMode() {
         guard case let .hint(returnTo) = state else { return }
         overlay.dismiss()
-        updateMode(returnTo == .normal ? .normal : .insert)
+        updateMode(returnTo?.interactionState ?? .inactive)
     }
 
-    private func updateMode(_ newState: InteractionState) {
+    private func synchronizeEditingSession() {
+        if case .hint = state { return }
+        guard let current = focus.focusedEditableElement else {
+            if focusedEditor != nil || state != .inactive {
+                if focusedEditor?.isTerminalSurface == true {
+                    terminalCommandExecutor.cancelPendingCommand()
+                }
+                focusedEditor = nil
+                terminalProgramContext = nil
+                terminalResolutionTask?.cancel()
+                terminalResolutionTask = nil
+                exitChord.resetPendingKey()
+                vimEngine.cancelPending()
+                updateMode(.inactive)
+            }
+            return
+        }
+
+        if let focusedEditor, focusedEditor.matches(current) {
+            if focusedEditor.frame != current.frame {
+                self.focusedEditor = current
+                modeIndicator.reposition(anchorAXFrame: current.frame)
+            }
+            requestTerminalResolutionIfNeeded(for: current)
+            return
+        }
+        terminalResolutionTask?.cancel()
+        terminalResolutionTask = nil
+        terminalProgramContext = nil
+        focusedEditor = current
+        exitChord.resetPendingKey()
+        vimEngine.cancelPending()
+        let frameDescription = current.frame.map {
+            "x=\(Int($0.minX)) y=\(Int($0.minY)) w=\(Int($0.width)) h=\(Int($0.height))"
+        } ?? "unavailable"
+        diagnosticLog(
+            "focus editor pid=\(current.processIdentifier) "
+                + "bundle=\(current.bundleIdentifier ?? "unknown") "
+                + "terminal=\(current.isTerminalSurface) "
+                + "persistentIndicator=\(current.prefersPersistentIndicator) "
+                + "frame=\(frameDescription)"
+        )
+        if current.isTerminalSurface {
+            terminalCommandExecutor.cancelPendingCommand()
+            updateMode(.inactive, forcePresentation: true)
+            requestTerminalResolutionIfNeeded(for: current, force: true)
+        } else {
+            updateMode(configuration.initialMode.interactionState, forcePresentation: true)
+        }
+    }
+
+    private func requestTerminalResolutionIfNeeded(
+        for editor: FocusedEditableElement,
+        force: Bool = false
+    ) {
+        guard editor.isTerminalSurface, terminalResolutionTask == nil else { return }
+        let now = Date()
+        guard force || now.timeIntervalSince(lastTerminalResolutionDate) >= 0.4 else { return }
+        lastTerminalResolutionDate = now
+        let processIdentifier = editor.processIdentifier
+        let bundleIdentifier = editor.bundleIdentifier
+
+        terminalResolutionTask = Task { [weak self] in
+            guard let self else { return }
+            let context = await terminalSessionResolver.resolve(
+                bundleIdentifier: bundleIdentifier,
+                terminalProcessIdentifier: processIdentifier
+            )
+            guard !Task.isCancelled else { return }
+            terminalResolutionTask = nil
+            applyTerminalProgramContext(context, expectedTerminalPID: processIdentifier)
+        }
+    }
+
+    private func applyTerminalProgramContext(
+        _ context: TerminalProgramContext?,
+        expectedTerminalPID: pid_t
+    ) {
+        guard let focusedEditor,
+              focusedEditor.isTerminalSurface,
+              focusedEditor.processIdentifier == expectedTerminalPID,
+              terminalProgramContext != context else { return }
+
+        terminalProgramContext = context
+        exitChord.resetPendingKey()
+        vimEngine.cancelPending()
+
+        if context?.behavior != .shellPrompt {
+            terminalCommandExecutor.cancelPendingCommand()
+        }
+
+        if let context {
+            diagnosticLog(
+                "terminal session window=\(context.identity.windowIdentifier) "
+                    + "foregroundPid=\(context.identity.foregroundProcessIdentifier) "
+                    + "executable=\(context.executableName) "
+                    + "behavior=\(context.behavior)"
+            )
+        } else {
+            diagnosticLog("terminal session unresolved pid=\(expectedTerminalPID) behavior=passThrough")
+        }
+
+        let nextState = context?.behavior.allowsOmniVim == true
+            ? configuration.initialMode.interactionState
+            : .inactive
+        updateMode(nextState, forcePresentation: true)
+    }
+
+    private func startFocusMonitoring() {
+        let timer = Timer(timeInterval: 0.12, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.synchronizeEditingSession()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        focusTimer = timer
+    }
+
+    private func updateMode(_ newState: InteractionState, forcePresentation: Bool = false) {
+        guard state != newState else {
+            if forcePresentation {
+                modeIndicator.update(
+                    newState,
+                    anchorAXFrame: focusedEditor?.frame,
+                    persistentInsert: focusedEditor?.prefersPersistentIndicator == true,
+                    pendingOperator: vimEngine.pendingOperator
+                )
+            }
+            return
+        }
         state = newState
-        modeIndicator.update(newState.label)
+        modeIndicator.update(
+            newState,
+            anchorAXFrame: focusedEditor?.frame,
+            persistentInsert: focusedEditor?.prefersPersistentIndicator == true,
+            pendingOperator: vimEngine.pendingOperator
+        )
+        diagnosticLog("mode=\(newState.label)")
+    }
+
+    private func presentMode() {
+        modeIndicator.update(
+            state,
+            anchorAXFrame: focusedEditor?.frame,
+            persistentInsert: focusedEditor?.prefersPersistentIndicator == true,
+            pendingOperator: vimEngine.pendingOperator
+        )
     }
 
     private func showPermissionNotice() {

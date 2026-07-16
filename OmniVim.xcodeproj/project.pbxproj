@@ -31,6 +31,12 @@
 		B1000000000000000000001B /* ElementActivatorStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001B /* ElementActivatorStrategyTests.swift */; };
 		B1000000000000000000001C /* InteractionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001C /* InteractionStateTests.swift */; };
 		B1000000000000000000001D /* ActivationAttempt.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001D /* ActivationAttempt.swift */; };
+		B1000000000000000000001E /* OrderedKeyChord.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001E /* OrderedKeyChord.swift */; };
+		B1000000000000000000001F /* VimEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001F /* VimEngine.swift */; };
+		B10000000000000000000020 /* SyntheticVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000020 /* SyntheticVimCommandExecutor.swift */; };
+		B10000000000000000000021 /* TerminalVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000021 /* TerminalVimCommandExecutor.swift */; };
+		B10000000000000000000022 /* TerminalSessionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000022 /* TerminalSessionResolver.swift */; };
+		B10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +77,12 @@
 		F1000000000000000000001B /* ElementActivatorStrategyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElementActivatorStrategyTests.swift; sourceTree = "<group>"; };
 		F1000000000000000000001C /* InteractionStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionStateTests.swift; sourceTree = "<group>"; };
 		F1000000000000000000001D /* ActivationAttempt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationAttempt.swift; sourceTree = "<group>"; };
+		F1000000000000000000001E /* OrderedKeyChord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedKeyChord.swift; sourceTree = "<group>"; };
+		F1000000000000000000001F /* VimEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VimEngine.swift; sourceTree = "<group>"; };
+		F10000000000000000000020 /* SyntheticVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticVimCommandExecutor.swift; sourceTree = "<group>"; };
+		F10000000000000000000021 /* TerminalVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalVimCommandExecutor.swift; sourceTree = "<group>"; };
+		F10000000000000000000022 /* TerminalSessionResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalSessionResolver.swift; sourceTree = "<group>"; };
+		F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadlineTUIVimCommandExecutor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +128,7 @@
 			children = (
 				G10000000000000000000010 /* Accessibility */,
 				G10000000000000000000012 /* App */,
+				G1000000000000000000001B /* Vim */,
 				G10000000000000000000013 /* Diagnostics */,
 				G10000000000000000000014 /* Hints */,
 				G10000000000000000000015 /* Input */,
@@ -163,7 +176,7 @@
 			isa = PBXGroup;
 			children = (
 				G10000000000000000000018 /* Activation */,
-				G10000000000000000000019 /* App */,
+				G10000000000000000000019 /* Vim */,
 				G10000000000000000000009 /* Fixtures */,
 				G1000000000000000000001A /* Hints */,
 			);
@@ -183,7 +196,6 @@
 			children = (
 				F10000000000000000000010 /* AXService.swift */,
 				F10000000000000000000001 /* AccessibilityScanner.swift */,
-				F10000000000000000000004 /* FocusDetector.swift */,
 			);
 			path = Accessibility;
 			sourceTree = "<group>";
@@ -200,7 +212,6 @@
 		G10000000000000000000012 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				F10000000000000000000012 /* InteractionState.swift */,
 				F10000000000000000000013 /* OmniVimAppDelegate.swift */,
 				F10000000000000000000014 /* OmniVimCoordinator.swift */,
 				F10000000000000000000007 /* OmniVimMain.swift */,
@@ -248,7 +259,6 @@
 			children = (
 				F10000000000000000000006 /* HintOverlayController.swift */,
 				F10000000000000000000019 /* HintOverlayViews.swift */,
-				F1000000000000000000001A /* ModeIndicatorController.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -261,12 +271,12 @@
 			path = Activation;
 			sourceTree = "<group>";
 		};
-		G10000000000000000000019 /* App */ = {
+		G10000000000000000000019 /* Vim */ = {
 			isa = PBXGroup;
 			children = (
 				F1000000000000000000001C /* InteractionStateTests.swift */,
 			);
-			path = App;
+			path = Vim;
 			sourceTree = "<group>";
 		};
 		G1000000000000000000001A /* Hints */ = {
@@ -275,6 +285,54 @@
 				F10000000000000000000008 /* HintEngineTests.swift */,
 			);
 			path = Hints;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000001B /* Vim */ = {
+			isa = PBXGroup;
+			children = (
+				G1000000000000000000001C /* Engine */,
+				G1000000000000000000001F /* Execution */,
+				G1000000000000000000001D /* Session */,
+				G1000000000000000000001E /* UI */,
+			);
+			path = Vim;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000001C /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000012 /* InteractionState.swift */,
+				F1000000000000000000001E /* OrderedKeyChord.swift */,
+				F1000000000000000000001F /* VimEngine.swift */,
+			);
+			path = Engine;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000001D /* Session */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000004 /* FocusDetector.swift */,
+				F10000000000000000000022 /* TerminalSessionResolver.swift */,
+			);
+			path = Session;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000001E /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000001A /* ModeIndicatorController.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000001F /* Execution */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */,
+				F10000000000000000000020 /* SyntheticVimCommandExecutor.swift */,
+				F10000000000000000000021 /* TerminalVimCommandExecutor.swift */,
+			);
+			path = Execution;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -395,6 +453,12 @@
 				B10000000000000000000019 /* HintOverlayViews.swift in Sources */,
 				B1000000000000000000001A /* ModeIndicatorController.swift in Sources */,
 				B1000000000000000000001D /* ActivationAttempt.swift in Sources */,
+				B1000000000000000000001E /* OrderedKeyChord.swift in Sources */,
+				B1000000000000000000001F /* VimEngine.swift in Sources */,
+				B10000000000000000000020 /* SyntheticVimCommandExecutor.swift in Sources */,
+				B10000000000000000000021 /* TerminalVimCommandExecutor.swift in Sources */,
+				B10000000000000000000022 /* TerminalSessionResolver.swift in Sources */,
+				B10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

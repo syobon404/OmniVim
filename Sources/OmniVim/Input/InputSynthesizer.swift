@@ -9,10 +9,23 @@ final class InputSynthesizer {
         var flags = CGEventFlags()
         if modifiers.contains(.command) { flags.insert(.maskCommand) }
         if modifiers.contains(.option) { flags.insert(.maskAlternate) }
+        if modifiers.contains(.control) { flags.insert(.maskControl) }
+        if modifiers.contains(.shift) { flags.insert(.maskShift) }
         down?.flags = flags
         up?.flags = flags
+        markAsSynthesized(down)
+        markAsSynthesized(up)
         down?.post(tap: .cghidEventTap)
         up?.post(tap: .cghidEventTap)
+    }
+
+    func sendKeyDown(_ key: KeyPress) {
+        let source = CGEventSource(stateID: .hidSystemState)
+        let event = CGEvent(keyboardEventSource: source, virtualKey: key.keyCode, keyDown: true)
+        event?.flags = key.flags
+        event?.setIntegerValueField(.keyboardEventAutorepeat, value: key.isRepeat ? 1 : 0)
+        markAsSynthesized(event)
+        event?.post(tap: .cghidEventTap)
     }
 
     func moveMouse(to point: CGPoint) {
@@ -54,5 +67,9 @@ final class InputSynthesizer {
         )
         event?.setIntegerValueField(.mouseEventClickState, value: 1)
         return event
+    }
+
+    private func markAsSynthesized(_ event: CGEvent?) {
+        event?.setIntegerValueField(.eventSourceUserData, value: OmniVimInputEvent.synthesizedTag)
     }
 }
