@@ -37,6 +37,7 @@
 		B10000000000000000000021 /* TerminalVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000021 /* TerminalVimCommandExecutor.swift */; };
 		B10000000000000000000022 /* TerminalSessionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000022 /* TerminalSessionResolver.swift */; };
 		B10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */; };
+		B10000000000000000000024 /* ModeMotionLabWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000024 /* ModeMotionLabWindowController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,6 +84,7 @@
 		F10000000000000000000021 /* TerminalVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalVimCommandExecutor.swift; sourceTree = "<group>"; };
 		F10000000000000000000022 /* TerminalSessionResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalSessionResolver.swift; sourceTree = "<group>"; };
 		F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadlineTUIVimCommandExecutor.swift; sourceTree = "<group>"; };
+		F10000000000000000000024 /* ModeMotionLabWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeMotionLabWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -321,6 +323,7 @@
 			isa = PBXGroup;
 			children = (
 				F1000000000000000000001A /* ModeIndicatorController.swift */,
+				F10000000000000000000024 /* ModeMotionLabWindowController.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -459,6 +462,7 @@
 				B10000000000000000000021 /* TerminalVimCommandExecutor.swift in Sources */,
 				B10000000000000000000022 /* TerminalSessionResolver.swift in Sources */,
 				B10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift in Sources */,
+				B10000000000000000000024 /* ModeMotionLabWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

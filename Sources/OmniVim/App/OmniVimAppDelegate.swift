@@ -6,6 +6,7 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
 #if DEBUG
     private lazy var inspector = AXInspectorWindowController()
+    private lazy var motionLab = ModeMotionLabWindowController()
 #endif
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -15,6 +16,11 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
         app.setActivationPolicy(.accessory)
         makeStatusItem()
         coordinator.start()
+#if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--motion-lab") {
+            motionLab.present()
+        }
+#endif
     }
 
     private func makeStatusItem() {
@@ -34,6 +40,9 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
         let inspectorItem = menu.addItem(withTitle: "Open AX Inspector", action: #selector(openInspector), keyEquivalent: "d")
         inspectorItem.keyEquivalentModifierMask = [.command, .option]
         inspectorItem.target = self
+        let motionLabItem = menu.addItem(withTitle: "Open Motion Lab", action: #selector(openMotionLab), keyEquivalent: "m")
+        motionLabItem.keyEquivalentModifierMask = [.command, .option]
+        motionLabItem.target = self
         menu.addItem(.separator())
 #endif
         let accessibility = menu.addItem(withTitle: "Open Accessibility Settings", action: #selector(openAccessibility), keyEquivalent: "")
@@ -51,6 +60,10 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
         inspector.target(processIdentifier: NSWorkspace.shared.frontmostApplication?.processIdentifier)
         inspector.showWindow(nil)
         inspector.window?.orderFrontRegardless()
+    }
+
+    @objc private func openMotionLab() {
+        motionLab.present()
     }
 #endif
 
