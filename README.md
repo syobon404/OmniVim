@@ -9,7 +9,8 @@ programs that already provide their own modal editing.
 
 > [!IMPORTANT]
 > OmniVim is an early prototype. Accessibility behavior varies between macOS applications, and
-> terminal support is currently focused on Kitty, fish, and `agy`.
+> terminal support is currently focused on Kitty, fish, and `agy`. Telegram visual hints require
+> Screen Recording permission and are processed entirely on-device.
 
 ## Highlights
 
@@ -17,6 +18,8 @@ programs that already provide their own modal editing.
 - Navigate with `h`, `j`, `k`, `l`, `w`, `b`, `0`, and `$`.
 - Compose operators and motions such as `dw`, `db`, `d$`, `cw`, and `cc`.
 - Press `Control-F` to label and activate accessible controls without reaching for the mouse.
+- Discover Telegram chats and controls by combining Accessibility, Apple Vision, and a
+  Telegram-specific layout profile.
 - Keep mode state scoped to the focused editor or terminal foreground process.
 - Bypass Vim, Neovim, Helix, and Kakoune so native modal input remains untouched.
 - Fail open when a target or terminal session cannot be identified reliably.
@@ -28,6 +31,8 @@ programs that already provide their own modal editing.
 | Native macOS text fields | Supported | Synthesized macOS editing and selection shortcuts |
 | Accessible buttons, links, menus, and rows | Partial | Accessibility actions with role-specific fallbacks |
 | Chromium and Electron controls | Partial | Depends on the application's Accessibility and event bridge |
+| Telegram Desktop | Experimental | AX hit testing, on-device Vision OCR, layout inference, and coordinate activation |
+| WeChat and Lark | Early adapter | App profile exists; coverage still depends on the UI exposed through Accessibility |
 | Kitty + fish prompt | Supported | Kitty session detection plus a fish `commandline` companion |
 | Kitty + `agy` | Experimental | Readline-style keyboard adapter |
 | Vim, Neovim, Helix, and Kakoune | Bypassed | Input is returned to the program unchanged |
@@ -78,6 +83,36 @@ prefix character and `Esc` dismisses the overlay.
 
 Hint codes are prefix-free and variable length. Markers are deduplicated before layout and rendered
 in one transparent panel per display.
+
+### Telegram visual hints
+
+Telegram Desktop exposes its editor through Accessibility but does not expose most of its sidebar
+and toolbar as useful AX controls. OmniVim therefore combines three local discovery mechanisms:
+
+```text
+Telegram front window
+        │
+        ├── AX hit-test grid ──────────────► real editable/actionable controls
+        ├── ScreenCaptureKit + Vision OCR ─► visible chat-row anchors
+        └── Telegram layout profile ───────► icon controls without text labels
+                                             (Call, Search, More, Attach, Emoji, Voice)
+                            │
+                            ▼
+                 deduplicated global frames
+                            │
+                            ▼
+                  hint code → center click
+```
+
+Vision runs with fast recognition and converts normalized OCR bounding boxes into global screen
+coordinates. Recognized sidebar text is grouped into 70-point chat rows; toolbar icons use offsets
+relative to the current window and inferred sidebar split. Before clicking, OmniVim waits until
+Telegram is actually frontmost, moves the pointer, and sends a Hammerspoon-compatible 200 ms mouse
+down/up sequence. Screenshots are processed in memory and are not saved.
+
+The first Telegram hint request prompts for **Privacy & Security → Screen Recording** if access has
+not already been granted. Accessibility-only hints remain available without visual capture, but
+chat rows and icon-only controls may be missing.
 
 ## Commands
 
@@ -201,9 +236,17 @@ OmniVim deliberately remains inactive. The diagnostic log should identify `nvim`
 ### A hint moves the pointer but does not activate a control
 
 Some controls report a successful Accessibility action without changing application state.
-System Settings rows require selection semantics, while some Chromium/Electron controls reject both
-Accessibility and externally synthesized clicks. These cases require application-specific
-activation strategies and remain an active area of development.
+System Settings rows require selection semantics, while some Chromium/Electron controls reject
+Accessibility or externally synthesized clicks. Telegram uses coordinate activation and waits for
+the target application to become frontmost before posting the click. Check the diagnostic log for
+`coordinate waiting`, `mouse move`, and the matching mouse `phase=down` / `phase=up` entries.
+
+### Telegram hints do not show chat rows
+
+Enable OmniVim under **Privacy & Security → Screen Recording**, then restart OmniVim. The log should
+contain `Telegram visual scan`, a non-zero `observations` count, and `screenPermission=true`.
+Accessibility permission alone normally discovers the message editor but not the native Telegram
+sidebar.
 
 ### Diagnostic files
 
@@ -212,8 +255,9 @@ activation strategies and remain an active area of development.
 ~/Library/Logs/OmniVim/Snapshots/
 ```
 
-The main log rotates at approximately 2 MiB. Debug builds expose **Open AX Inspector** in the
-menu-bar menu; use it while the target app is frontmost to capture an Accessibility snapshot.
+The main log rotates at approximately 2 MiB. Debug builds expose **Open Compatibility Lab** in the
+menu-bar menu; use it while the target app is frontmost to inspect capabilities and export a
+redacted compatibility artifact.
 
 ## Development
 
@@ -236,19 +280,22 @@ Build the signed development app used for manual testing with:
 ### Source layout
 
 - `App`: application lifecycle and top-level coordination.
-- `Vim`: mode engine, command execution, focused editing and terminal sessions, program
-  classification, and mode presentation.
+- `ApplicationIntegration`: capability model, probes, reusable mechanisms, app-specific profiles,
+  terminal adapters, and runtime adapter selection.
+- `Vim`: mode engine, operator/motion parsing, command execution, and mode presentation.
 - `Input`: global key monitoring and synthesized keyboard or mouse input.
 - `Accessibility`: shared scanning and low-level Accessibility operations.
 - `Activation`: target activation policy and fallback sequencing.
 - `Hints`: pure hint code, visibility, deduplication, and layout engines.
 - `UI`: hint overlay panels and markers.
-- `Inspector`: Accessibility inspector and snapshot recording.
+- `Research/CompatibilityLab`: capability inspection, AX snapshots, and redacted compatibility
+  artifacts used to research new app adapters.
 - `Diagnostics`: diagnostic logging.
 
-The coordinator owns interaction flow. UI components report a selected target, while activation is
-isolated behind `ElementActivator`. Terminal adapters translate the same Vim command model into the
-editing primitives offered by each foreground program.
+The coordinator owns interaction flow. `ApplicationAdapterRegistry` selects an app profile, each
+profile declares capabilities rather than branching inside the coordinator, and UI components
+report selected targets through an adapter-owned activation strategy. Terminal adapters translate
+the same Vim command model into the editing primitives offered by each foreground program.
 
 ## Roadmap
 
@@ -256,6 +303,7 @@ editing primitives offered by each foreground program.
 - Add adapters for more shells, terminal emulators, and coding-agent TUIs.
 - Detect and bypass additional applications with native modal editing.
 - Improve verified activation for Chromium and Electron accessibility targets.
+- Replace Telegram layout constants with dynamically calibrated visual controls where practical.
 - Make mode-switch chords, indicators, and application policies user-configurable.
 - Introduce richer text-buffer context without sacrificing low resource usage.
 
