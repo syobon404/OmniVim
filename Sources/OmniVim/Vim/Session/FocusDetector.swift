@@ -1,63 +1,46 @@
 import AppKit
 
-struct FocusedEditableElement {
-    let processIdentifier: pid_t
-    let bundleIdentifier: String?
-    let element: AXUIElement
-    let frame: CGRect?
-    let prefersPersistentIndicator: Bool
-
-    var isTerminalSurface: Bool {
-        TerminalApplicationPolicy.isTerminal(bundleIdentifier: bundleIdentifier)
-    }
-
-    func matches(_ other: FocusedEditableElement) -> Bool {
-        processIdentifier == other.processIdentifier && CFEqual(element, other.element)
-    }
-}
-
 final class FocusDetector {
-    var focusedEditableElement: FocusedEditableElement? {
+    private let integrationRuntime: ApplicationIntegrationRuntime
+
+    init(integrationRuntime: ApplicationIntegrationRuntime = ApplicationIntegrationRuntime()) {
+        self.integrationRuntime = integrationRuntime
+    }
+
+    var focusedEditorTarget: EditorTarget? {
+        guard let integration = focusedApplicationIntegration else { return nil }
+        let context = integration.environment.application
+        guard let resolution = integration.capabilities.editorResolver.resolve(
+            in: integration.environment
+        ) else { return nil }
+
+        return EditorTarget(
+            processIdentifier: context.processIdentifier,
+            bundleIdentifier: context.bundleIdentifier,
+            adapterIdentifier: integration.adapterIdentifier,
+            capabilities: integration.capabilities,
+            handle: resolution.handle,
+            frame: resolution.frame,
+            prefersPersistentIndicator: context.activationPolicy != .regular
+        )
+    }
+
+    var focusedApplicationCapabilities: AdapterCapabilities? {
+        focusedApplicationIntegration?.capabilities
+    }
+
+    private var focusedApplicationIntegration: ApplicationIntegrationResolution? {
         guard AXIsProcessTrusted(), let focusedApplication = focusedApplication() else { return nil }
-        let appElement = focusedApplication.element
-        var focused: CFTypeRef?
-        AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute as CFString, &focused)
-        guard let focused = focused else { return nil }
-        let element = focused as! AXUIElement
-        var role: CFTypeRef?
-        AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
-        guard ["AXTextField", "AXTextArea", "AXSearchField", "AXTextView"].contains(role as? String) else {
-            return nil
-        }
         let runningApplication = NSRunningApplication(
             processIdentifier: focusedApplication.processIdentifier
         )
-        return FocusedEditableElement(
+        let context = RunningApplicationContext(
             processIdentifier: focusedApplication.processIdentifier,
             bundleIdentifier: runningApplication?.bundleIdentifier,
-            element: element,
-            frame: frame(of: element),
-            prefersPersistentIndicator: runningApplication.map {
-                $0.activationPolicy != .regular
-            } ?? false
+            activationPolicy: runningApplication?.activationPolicy ?? .regular,
+            accessibilityElement: focusedApplication.element
         )
-    }
-
-    private func frame(of element: AXUIElement) -> CGRect? {
-        var positionRef: CFTypeRef?
-        var sizeRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, kAXPositionAttribute as CFString, &positionRef) == .success,
-              AXUIElementCopyAttributeValue(element, kAXSizeAttribute as CFString, &sizeRef) == .success,
-              let positionRef, let sizeRef,
-              CFGetTypeID(positionRef) == AXValueGetTypeID(),
-              CFGetTypeID(sizeRef) == AXValueGetTypeID() else { return nil }
-        let positionValue = positionRef as! AXValue
-        let sizeValue = sizeRef as! AXValue
-        var point = CGPoint.zero
-        var size = CGSize.zero
-        guard AXValueGetValue(positionValue, .cgPoint, &point),
-              AXValueGetValue(sizeValue, .cgSize, &size) else { return nil }
-        return CGRect(origin: point, size: size)
+        return integrationRuntime.resolve(context: context)
     }
 
     private func focusedApplication() -> (processIdentifier: pid_t, element: AXUIElement)? {

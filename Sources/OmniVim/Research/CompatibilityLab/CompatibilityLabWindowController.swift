@@ -2,11 +2,13 @@ import AppKit
 
 #if DEBUG
 @MainActor
-final class AXInspectorWindowController: NSWindowController {
+final class CompatibilityLabWindowController: NSWindowController {
     private let recorder = AXSnapshotRecorder()
+    private let exporter = CompatibilityArtifactExporter()
     private let textView = NSTextView()
     private let statusLabel = NSTextField(labelWithString: "No snapshot captured")
     private var snapshot: AXApplicationSnapshot?
+    private var report: ApplicationCapabilityReport?
     private var targetProcessIdentifier: pid_t?
 
     convenience init() {
@@ -16,17 +18,20 @@ final class AXInspectorWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "OmniVim AX Inspector"
+        window.title = "OmniVim Compatibility Lab"
         self.init(window: window)
         configureContent()
     }
 
     private func configureContent() {
         guard let contentView = window?.contentView else { return }
-        let captureButton = NSButton(title: "Capture Frontmost App", target: self, action: #selector(capture))
-        let saveButton = NSButton(title: "Save JSON", target: self, action: #selector(save))
-        let revealButton = NSButton(title: "Reveal Snapshots", target: self, action: #selector(revealSnapshots))
-        let toolbar = NSStackView(views: [captureButton, saveButton, revealButton, statusLabel])
+        let captureButton = NSButton(title: "Capture AX", target: self, action: #selector(capture))
+        let probeButton = NSButton(title: "Probe Capabilities", target: self, action: #selector(probeCapabilities))
+        let saveButton = NSButton(title: "Export Sanitized Artifact", target: self, action: #selector(save))
+        let revealButton = NSButton(title: "Reveal Artifacts", target: self, action: #selector(revealArtifacts))
+        let toolbar = NSStackView(
+            views: [captureButton, probeButton, saveButton, revealButton, statusLabel]
+        )
         toolbar.orientation = .horizontal
         toolbar.spacing = 10
         toolbar.translatesAutoresizingMaskIntoConstraints = false
@@ -74,22 +79,45 @@ final class AXInspectorWindowController: NSWindowController {
         }
     }
 
+    @objc private func probeCapabilities() {
+        guard let processIdentifier = targetProcessIdentifier
+            ?? NSWorkspace.shared.frontmostApplication?.processIdentifier,
+              let report = exporter.report(processIdentifier: processIdentifier) else {
+            statusLabel.stringValue = "Probe failed: target unavailable"
+            return
+        }
+        self.report = report
+        statusLabel.stringValue = "\(report.fingerprint.bundleIdentifier) · \(report.evidence.count) probes"
+        let artifact = CompatibilityArtifact(
+            report: report,
+            accessibilitySnapshot: snapshot
+        )
+        if let data = try? exporter.encode(artifact) {
+            textView.string = String(decoding: data, as: UTF8.self)
+        }
+    }
+
     @objc private func save() {
-        guard let snapshot else {
+        guard let processIdentifier = targetProcessIdentifier
+            ?? NSWorkspace.shared.frontmostApplication?.processIdentifier,
+              let report = report ?? exporter.report(processIdentifier: processIdentifier) else {
             NSSound.beep()
             return
         }
         do {
-            let url = try recorder.save(snapshot)
+            let artifact = CompatibilityArtifact(
+                report: report,
+                accessibilitySnapshot: snapshot
+            )
+            let url = try exporter.save(artifact)
             statusLabel.stringValue = "Saved: \(url.lastPathComponent)"
         } catch {
             statusLabel.stringValue = "Save failed: \(error.localizedDescription)"
         }
     }
 
-    @objc private func revealSnapshots() {
-        let directory = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Logs/OmniVim/Snapshots", isDirectory: true)
+    @objc private func revealArtifacts() {
+        let directory = CompatibilityArtifactExporter.artifactDirectoryURL
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         NSWorkspace.shared.open(directory)
     }

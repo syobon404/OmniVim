@@ -1,7 +1,11 @@
 import AppKit
+import Darwin
 
 @MainActor
 final class InputSynthesizer {
+    private let mouseEventSource = CGEventSource(stateID: .privateState)
+    private let mouseClickDuration: TimeInterval = 0.2
+
     func sendKey(_ keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags = []) {
         let source = CGEventSource(stateID: .hidSystemState)
         let down = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true)
@@ -30,32 +34,62 @@ final class InputSynthesizer {
 
     func moveMouse(to point: CGPoint) {
         CGWarpMouseCursorPosition(point)
-        diagnosticLog("mouse move x=\(point.x) y=\(point.y)")
+        CGAssociateMouseAndMouseCursorPosition(boolean_t(1))
+        diagnosticLog("mouse move x=\(point.x) y=\(point.y) method=warp")
     }
 
     @discardableResult
     func clickGlobal(at point: CGPoint, processIdentifier: pid_t? = nil) -> Bool {
-        let source = CGEventSource(stateID: .combinedSessionState)
-        let down = mouseEvent(source: source, type: .leftMouseDown, at: point)
-        let up = mouseEvent(source: source, type: .leftMouseUp, at: point)
-        down?.post(tap: .cghidEventTap)
-        up?.post(tap: .cghidEventTap)
-        diagnosticLog("mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier ?? 0) mode=global down=\(down != nil) up=\(up != nil)")
-        return down != nil && up != nil
+        let down = mouseEvent(source: mouseEventSource, type: .leftMouseDown, at: point)
+        let up = mouseEvent(source: mouseEventSource, type: .leftMouseUp, at: point)
+        guard let down, let up else {
+            diagnosticLog(
+                "mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier ?? 0) "
+                    + "mode=global created=false"
+            )
+            return false
+        }
+        down.post(tap: .cgSessionEventTap)
+        usleep(1_000)
+        diagnosticLog(
+            "mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier ?? 0) "
+                + "mode=global source=private phase=down posted=true"
+        )
+        usleep(useconds_t(mouseClickDuration * 1_000_000))
+        up.post(tap: .cgSessionEventTap)
+        usleep(1_000)
+        diagnosticLog(
+            "mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier ?? 0) "
+                + "mode=global source=private phase=up posted=true"
+        )
+        return true
     }
 
     @discardableResult
     func clickTargeted(at point: CGPoint, processIdentifier: pid_t) -> Bool {
-        let source = CGEventSource(stateID: .combinedSessionState)
-        let down = mouseEvent(source: source, type: .leftMouseDown, at: point)
-        let up = mouseEvent(source: source, type: .leftMouseUp, at: point)
-        down?.postToPid(processIdentifier)
-        diagnosticLog("mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier) mode=targeted phase=down created=\(down != nil)")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-            up?.postToPid(processIdentifier)
-            diagnosticLog("mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier) mode=targeted phase=up created=\(up != nil)")
+        let down = mouseEvent(source: mouseEventSource, type: .leftMouseDown, at: point)
+        let up = mouseEvent(source: mouseEventSource, type: .leftMouseUp, at: point)
+        guard let down, let up else {
+            diagnosticLog(
+                "mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier) "
+                    + "mode=targeted created=false"
+            )
+            return false
         }
-        return down != nil && up != nil
+        down.postToPid(processIdentifier)
+        usleep(1_000)
+        diagnosticLog(
+            "mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier) "
+                + "mode=targeted source=private phase=down posted=true"
+        )
+        usleep(useconds_t(mouseClickDuration * 1_000_000))
+        up.postToPid(processIdentifier)
+        usleep(1_000)
+        diagnosticLog(
+            "mouse click x=\(point.x) y=\(point.y) targetPid=\(processIdentifier) "
+                + "mode=targeted source=private phase=up posted=true"
+        )
+        return true
     }
 
     private func mouseEvent(source: CGEventSource?, type: CGEventType, at point: CGPoint) -> CGEvent? {
@@ -65,7 +99,7 @@ final class InputSynthesizer {
             mouseCursorPosition: point,
             mouseButton: .left
         )
-        event?.setIntegerValueField(.mouseEventClickState, value: 1)
+        event?.flags = []
         return event
     }
 

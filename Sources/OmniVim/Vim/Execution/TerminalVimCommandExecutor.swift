@@ -1,20 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
 
-enum TerminalApplicationPolicy {
-    private static let bundleIdentifiers: Set<String> = [
-        "com.apple.Terminal",
-        "com.github.wez.wezterm",
-        "com.googlecode.iterm2",
-        "net.kovidgoyal.kitty"
-    ]
-
-    static func isTerminal(bundleIdentifier: String?) -> Bool {
-        guard let bundleIdentifier else { return false }
-        return bundleIdentifiers.contains(bundleIdentifier)
-    }
-}
-
 struct TerminalVimExecutionPlan: Equatable {
     let bridgeCommand: String?
     let resultingMode: BaseVimMode

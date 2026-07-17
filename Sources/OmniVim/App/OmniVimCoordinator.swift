@@ -10,6 +10,11 @@ final class OmniVimCoordinator {
     private lazy var commandExecutor = SyntheticVimCommandExecutor(input: input)
     private lazy var terminalCommandExecutor = TerminalVimCommandExecutor(input: input)
     private lazy var readlineTUICommandExecutor = ReadlineTUIVimCommandExecutor(input: input)
+    private lazy var commandExecutionServices = CommandExecutionServices(
+        synthetic: commandExecutor,
+        terminal: terminalCommandExecutor,
+        readlineTUI: readlineTUICommandExecutor
+    )
     private let terminalSessionResolver = TerminalSessionResolver()
     private let keyMonitor = GlobalKeyMonitor()
     private let modeIndicator = ModeIndicatorController()
@@ -17,11 +22,13 @@ final class OmniVimCoordinator {
     private var exitChord: OrderedKeyChord
     private var vimEngine = VimEngine()
     private var state: InteractionState
-    private var focusedEditor: FocusedEditableElement?
+    private var focusedEditor: EditorTarget?
+    private var activeHintActivator: (any AdapterElementActivating)?
     private var terminalProgramContext: TerminalProgramContext?
     private var terminalResolutionTask: Task<Void, Never>?
     private var lastTerminalResolutionDate = Date.distantPast
     private var focusTimer: Timer?
+    private var acknowledgedHintLimitations: Set<HintDiscoveryLimitation> = []
 
     init(configuration: ModeConfiguration = ModeConfiguration()) {
         self.configuration = configuration
@@ -52,11 +59,21 @@ final class OmniVimCoordinator {
         if case .hint = state { return }
         exitChord.resetPendingKey()
         vimEngine.cancelPending()
-        let elements = scanner.elements()
-        let filtered = searchOnly
-            ? elements.filter { ["AXTextField", "AXTextArea", "AXSearchField"].contains($0.role) }
-            : elements
-        guard overlay.show(elements: filtered) else { return }
+        let applicationCapabilities = focus.focusedApplicationCapabilities
+        let provider = applicationCapabilities?.hintProvider
+            ?? focusedEditor?.capabilities.hintProvider
+            ?? AccessibilityHintProvider()
+        if !searchOnly,
+           let limitation = provider.discoveryLimitation,
+           !acknowledgedHintLimitations.contains(limitation),
+           !resolveHintDiscoveryLimitation(limitation) {
+            return
+        }
+        guard overlay.show(elements: provider.hints(searchOnly: searchOnly, scanner: scanner)) else {
+            return
+        }
+        activeHintActivator = applicationCapabilities?.activator
+            ?? focusedEditor?.capabilities.activator
         updateMode(.hint(returnTo: state.baseMode))
     }
 
@@ -76,8 +93,10 @@ final class OmniVimCoordinator {
 
         synchronizeEditingSession()
 
-        if focusedEditor?.isTerminalSurface == true,
-           terminalProgramContext?.behavior.allowsOmniVim != true {
+        if let focusedEditor,
+           !focusedEditor.capabilities.commandExecutor.allowsInput(
+               terminalContext: terminalProgramContext
+           ) {
             return false
         }
 
@@ -105,7 +124,10 @@ final class OmniVimCoordinator {
         }
         if key.isControlF {
             vimEngine.cancelPending()
-            showHints(searchOnly: false)
+            diagnosticLog("hint discovery scheduled")
+            DispatchQueue.main.async { [weak self] in
+                self?.showHints(searchOnly: false)
+            }
             return true
         }
         guard state == .normal, focusedEditor != nil else { return false }
@@ -128,47 +150,41 @@ final class OmniVimCoordinator {
             presentMode()
             return true
         case let .execute(command):
-            let executorName: String
-            let resultingMode: BaseVimMode?
-            if focusedEditor?.isTerminalSurface == true {
-                switch terminalProgramContext?.behavior {
-                case .shellPrompt:
-                    executorName = "terminal-shell"
-                    resultingMode = terminalCommandExecutor.execute(command)
-                case .adaptedTUI(.readlineTUI):
-                    executorName = "terminal-readline-tui"
-                    resultingMode = readlineTUICommandExecutor.execute(command)
-                case .nativeModal, .passThrough, nil:
-                    return false
-                }
-            } else {
-                executorName = "synthetic"
-                resultingMode = commandExecutor.execute(command)
-            }
+            guard let focusedEditor else { return false }
+            let executor = focusedEditor.capabilities.commandExecutor
+            let resultingMode = executor.execute(
+                command,
+                terminalContext: terminalProgramContext,
+                services: commandExecutionServices
+            )
             guard let resultingMode else { return true }
-            diagnosticLog("vim command=\(command) executor=\(executorName)")
+            diagnosticLog("vim command=\(command) executor=\(executor.identifier)")
             updateMode(resultingMode.interactionState, forcePresentation: true)
             return true
         }
     }
 
     private func selectTarget(_ target: UIElementHint) {
+        let targetActivator = activeHintActivator ?? focusedEditor?.capabilities.activator
         finishHintMode()
-        activator.activate(target)
+        (targetActivator ?? AccessibilityElementActivator()).activate(target, using: activator)
     }
 
     private func finishHintMode() {
         guard case let .hint(returnTo) = state else { return }
         overlay.dismiss()
+        activeHintActivator = nil
         updateMode(returnTo?.interactionState ?? .inactive)
     }
 
     private func synchronizeEditingSession() {
         if case .hint = state { return }
-        guard let current = focus.focusedEditableElement else {
+        guard let current = focus.focusedEditorTarget else {
             if focusedEditor != nil || state != .inactive {
-                if focusedEditor?.isTerminalSurface == true {
-                    terminalCommandExecutor.cancelPendingCommand()
+                if let focusedEditor {
+                    focusedEditor.capabilities.commandExecutor.cancelPending(
+                        using: commandExecutionServices
+                    )
                 }
                 focusedEditor = nil
                 terminalProgramContext = nil
@@ -201,12 +217,13 @@ final class OmniVimCoordinator {
         diagnosticLog(
             "focus editor pid=\(current.processIdentifier) "
                 + "bundle=\(current.bundleIdentifier ?? "unknown") "
-                + "terminal=\(current.isTerminalSurface) "
+                + "adapter=\(current.adapterIdentifier) "
+                + "executor=\(current.capabilities.commandExecutor.identifier) "
                 + "persistentIndicator=\(current.prefersPersistentIndicator) "
                 + "frame=\(frameDescription)"
         )
-        if current.isTerminalSurface {
-            terminalCommandExecutor.cancelPendingCommand()
+        if current.capabilities.commandExecutor.requiresTerminalSession {
+            current.capabilities.commandExecutor.cancelPending(using: commandExecutionServices)
             updateMode(.inactive, forcePresentation: true)
             requestTerminalResolutionIfNeeded(for: current, force: true)
         } else {
@@ -215,10 +232,11 @@ final class OmniVimCoordinator {
     }
 
     private func requestTerminalResolutionIfNeeded(
-        for editor: FocusedEditableElement,
+        for editor: EditorTarget,
         force: Bool = false
     ) {
-        guard editor.isTerminalSurface, terminalResolutionTask == nil else { return }
+        guard editor.capabilities.commandExecutor.requiresTerminalSession,
+              terminalResolutionTask == nil else { return }
         let now = Date()
         guard force || now.timeIntervalSince(lastTerminalResolutionDate) >= 0.4 else { return }
         lastTerminalResolutionDate = now
@@ -242,7 +260,7 @@ final class OmniVimCoordinator {
         expectedTerminalPID: pid_t
     ) {
         guard let focusedEditor,
-              focusedEditor.isTerminalSurface,
+              focusedEditor.capabilities.commandExecutor.requiresTerminalSession,
               focusedEditor.processIdentifier == expectedTerminalPID,
               terminalProgramContext != context else { return }
 
@@ -251,7 +269,7 @@ final class OmniVimCoordinator {
         vimEngine.cancelPending()
 
         if context?.behavior != .shellPrompt {
-            terminalCommandExecutor.cancelPendingCommand()
+            focusedEditor.capabilities.commandExecutor.cancelPending(using: commandExecutionServices)
         }
 
         if let context {
@@ -320,6 +338,37 @@ final class OmniVimCoordinator {
         alert.addButton(withTitle: "Later")
         if alert.runModal() == .alertFirstButtonReturn {
             NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+        }
+    }
+
+    private func resolveHintDiscoveryLimitation(_ limitation: HintDiscoveryLimitation) -> Bool {
+        switch limitation {
+        case let .screenRecordingPermissionRequired(applicationName):
+            let alert = NSAlert()
+            alert.messageText = "Enable full UI hints for \(applicationName)"
+            alert.informativeText = "\(applicationName) does not expose its main interface through macOS Accessibility. OmniVim needs Screen Recording access to discover visible rows and controls. Screenshots are processed locally and are not saved."
+            alert.addButton(withTitle: "Request Access")
+            alert.addButton(withTitle: "Continue with Limited Hints")
+            alert.addButton(withTitle: "Cancel")
+
+            switch alert.runModal() {
+            case .alertFirstButtonReturn:
+                let granted = CGRequestScreenCaptureAccess()
+                diagnosticLog("screen capture permission requested from hint discovery granted=\(granted)")
+                if !granted {
+                    NSWorkspace.shared.open(
+                        URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!
+                    )
+                }
+                return granted
+            case .alertSecondButtonReturn:
+                acknowledgedHintLimitations.insert(limitation)
+                diagnosticLog("hint discovery limitation acknowledged application=\(applicationName)")
+                return true
+            default:
+                diagnosticLog("hint discovery cancelled application=\(applicationName)")
+                return false
+            }
         }
     }
 }

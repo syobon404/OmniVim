@@ -10,14 +10,18 @@ final class ElementActivator {
         self.input = input
     }
 
-    func activate(_ target: UIElementHint) {
+    func activate(_ target: UIElementHint, targetedMouseConfirmation: Bool = false) {
         let activationID = String(UUID().uuidString.prefix(8)).lowercased()
         diagnosticLog("activation=\(activationID) target role=\(target.role) subrole=\(target.subrole)")
         if editableRoles.contains(target.role) {
             let result = ax.setFocused(target.element)
             record(activationID, method: .focus, dispatch: activationDispatchOutcome(for: result))
         } else if clickableRoles.contains(target.role) {
-            activateClickable(target, activationID: activationID)
+            activateClickable(
+                target,
+                activationID: activationID,
+                targetedMouseConfirmation: targetedMouseConfirmation
+            )
         } else {
             let result = ax.perform(kAXPressAction as String, on: target.element)
             record(activationID, method: .axPress, dispatch: activationDispatchOutcome(for: result))
@@ -25,6 +29,79 @@ final class ElementActivator {
                 let posted = input.clickGlobal(at: center(of: target.frame), processIdentifier: target.processIdentifier)
                 record(activationID, method: .globalMouse, dispatch: posted ? .accepted : .unavailable)
             }
+        }
+    }
+
+    func activateByMouse(_ target: UIElementHint) {
+        let activationID = String(UUID().uuidString.prefix(8)).lowercased()
+        let point = center(of: target.frame)
+        let activated = NSRunningApplication(processIdentifier: target.processIdentifier)?.activate(
+            options: [.activateAllWindows, .activateIgnoringOtherApps]
+        ) ?? false
+        diagnosticLog(
+            "activation=\(activationID) target role=\(target.role) "
+                + "method=coordinate activate=\(activated)"
+        )
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self else { return }
+            self.prepareCoordinateClick(
+                at: point,
+                processIdentifier: target.processIdentifier,
+                activationID: activationID,
+                attemptsRemaining: 3
+            )
+        }
+    }
+
+    private func prepareCoordinateClick(
+        at point: CGPoint,
+        processIdentifier: pid_t,
+        activationID: String,
+        attemptsRemaining: Int
+    ) {
+        let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0
+        guard frontmostPID == processIdentifier else {
+            diagnosticLog(
+                "activation=\(activationID) coordinate waiting targetPid=\(processIdentifier) "
+                    + "frontmostPid=\(frontmostPID) attemptsRemaining=\(attemptsRemaining)"
+            )
+            guard attemptsRemaining > 0 else {
+                record(activationID, method: .globalMouse, dispatch: .unavailable)
+                return
+            }
+            _ = NSRunningApplication(processIdentifier: processIdentifier)?.activate(
+                options: [.activateAllWindows, .activateIgnoringOtherApps]
+            )
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                self?.prepareCoordinateClick(
+                    at: point,
+                    processIdentifier: processIdentifier,
+                    activationID: activationID,
+                    attemptsRemaining: attemptsRemaining - 1
+                )
+            }
+            return
+        }
+
+        input.moveMouse(to: point)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) { [weak self] in
+            guard let self else { return }
+            let clickFrontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0
+            guard clickFrontmostPID == processIdentifier else {
+                self.prepareCoordinateClick(
+                    at: point,
+                    processIdentifier: processIdentifier,
+                    activationID: activationID,
+                    attemptsRemaining: attemptsRemaining
+                )
+                return
+            }
+            let posted = self.input.clickGlobal(at: point, processIdentifier: processIdentifier)
+            self.record(
+                activationID,
+                method: .globalMouse,
+                dispatch: posted ? .accepted : .unavailable
+            )
         }
     }
 
@@ -40,7 +117,11 @@ final class ElementActivator {
         ]
     }
 
-    private func activateClickable(_ target: UIElementHint, activationID: String) {
+    private func activateClickable(
+        _ target: UIElementHint,
+        activationID: String,
+        targetedMouseConfirmation: Bool
+    ) {
         let point = center(of: target.frame)
         let activated = NSRunningApplication(processIdentifier: target.processIdentifier)?.activate(
             options: [.activateIgnoringOtherApps]
@@ -66,7 +147,7 @@ final class ElementActivator {
                     self.record(activationID, method: method, dispatch: activationDispatchOutcome(for: result))
                 }
                 if result == .success {
-                    if requiresTargetedMouseConfirmation(processIdentifier: target.processIdentifier) {
+                    if targetedMouseConfirmation {
                         let posted = self.input.clickTargeted(at: point, processIdentifier: target.processIdentifier)
                         self.record(activationID, method: .targetedMouse, dispatch: posted ? .accepted : .unavailable)
                     }
@@ -76,7 +157,7 @@ final class ElementActivator {
                 diagnosticLog("AX action unresolved role=\(target.role)")
             }
 
-            if requiresTargetedMouseConfirmation(processIdentifier: target.processIdentifier) {
+            if targetedMouseConfirmation {
                 let posted = self.input.clickTargeted(at: point, processIdentifier: target.processIdentifier)
                 self.record(activationID, method: .targetedMouse, dispatch: posted ? .accepted : .unavailable)
             } else {
@@ -142,10 +223,6 @@ struct AXActionCandidateSelection: Equatable {
 
 func shouldSelectAXElement(role: String) -> Bool {
     role == "AXRow" || role == "AXCell"
-}
-
-func requiresTargetedMouseConfirmation(processIdentifier: pid_t) -> Bool {
-    NSRunningApplication(processIdentifier: processIdentifier)?.bundleIdentifier == "com.openai.codex"
 }
 
 func preferredAXActionCandidate(_ supportedActionsByCandidate: [[String]]) -> AXActionCandidateSelection? {

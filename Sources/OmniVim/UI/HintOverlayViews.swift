@@ -46,6 +46,9 @@ final class HintMarkerView: NSView {
         layer?.borderColor = NSColor.black.withAlphaComponent(0.35).cgColor
         layer?.borderWidth = 1
         toolTip = hint.title.isEmpty ? hint.role : hint.title
+        setAccessibilityElement(true)
+        setAccessibilityRole(.button)
+        setAccessibilityLabel("Hint \(code.uppercased())")
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }

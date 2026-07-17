@@ -24,10 +24,105 @@ struct AXNodeSnapshot: Codable, Identifiable, Equatable {
     let description: String
     let value: String
     let identifier: String
+    let attributes: [String]
     let actions: [String]
     let frame: AXRectSnapshot?
     let enabled: Bool?
     let focused: Bool?
+
+    init(
+        id: Int,
+        parentID: Int?,
+        depth: Int,
+        role: String,
+        subrole: String,
+        title: String,
+        description: String,
+        value: String,
+        identifier: String,
+        attributes: [String] = [],
+        actions: [String],
+        frame: AXRectSnapshot?,
+        enabled: Bool?,
+        focused: Bool?
+    ) {
+        self.id = id
+        self.parentID = parentID
+        self.depth = depth
+        self.role = role
+        self.subrole = subrole
+        self.title = title
+        self.description = description
+        self.value = value
+        self.identifier = identifier
+        self.attributes = attributes
+        self.actions = actions
+        self.frame = frame
+        self.enabled = enabled
+        self.focused = focused
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, parentID, depth, role, subrole, title, description, value
+        case identifier, attributes, actions, frame, enabled, focused
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int.self, forKey: .id)
+        parentID = try container.decodeIfPresent(Int.self, forKey: .parentID)
+        depth = try container.decode(Int.self, forKey: .depth)
+        role = try container.decode(String.self, forKey: .role)
+        subrole = try container.decode(String.self, forKey: .subrole)
+        title = try container.decode(String.self, forKey: .title)
+        description = try container.decode(String.self, forKey: .description)
+        value = try container.decode(String.self, forKey: .value)
+        identifier = try container.decode(String.self, forKey: .identifier)
+        attributes = try container.decodeIfPresent([String].self, forKey: .attributes) ?? []
+        actions = try container.decode([String].self, forKey: .actions)
+        frame = try container.decodeIfPresent(AXRectSnapshot.self, forKey: .frame)
+        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled)
+        focused = try container.decodeIfPresent(Bool.self, forKey: .focused)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(parentID, forKey: .parentID)
+        try container.encode(depth, forKey: .depth)
+        try container.encode(role, forKey: .role)
+        try container.encode(subrole, forKey: .subrole)
+        try container.encode(title, forKey: .title)
+        try container.encode(description, forKey: .description)
+        try container.encode(value, forKey: .value)
+        try container.encode(identifier, forKey: .identifier)
+        try container.encode(attributes, forKey: .attributes)
+        try container.encode(actions, forKey: .actions)
+        try container.encodeIfPresent(frame, forKey: .frame)
+        try container.encodeIfPresent(enabled, forKey: .enabled)
+        try container.encodeIfPresent(focused, forKey: .focused)
+    }
+}
+
+extension AXNodeSnapshot {
+    func sanitized() -> AXNodeSnapshot {
+        AXNodeSnapshot(
+            id: id,
+            parentID: parentID,
+            depth: depth,
+            role: role,
+            subrole: subrole,
+            title: title.isEmpty ? "" : "<redacted>",
+            description: description.isEmpty ? "" : "<redacted>",
+            value: value.isEmpty ? "" : "<redacted>",
+            identifier: identifier.isEmpty ? "" : "<redacted>",
+            attributes: attributes,
+            actions: actions,
+            frame: frame,
+            enabled: enabled,
+            focused: focused
+        )
+    }
 }
 
 struct AXApplicationSnapshot: Codable, Equatable {
@@ -36,6 +131,18 @@ struct AXApplicationSnapshot: Codable, Equatable {
     let bundleIdentifier: String
     let applicationName: String
     let nodes: [AXNodeSnapshot]
+}
+
+extension AXApplicationSnapshot {
+    func sanitized() -> AXApplicationSnapshot {
+        AXApplicationSnapshot(
+            capturedAt: capturedAt,
+            processIdentifier: processIdentifier,
+            bundleIdentifier: bundleIdentifier,
+            applicationName: applicationName,
+            nodes: nodes.map { $0.sanitized() }
+        )
+    }
 }
 
 @MainActor
@@ -106,6 +213,7 @@ final class AXSnapshotRecorder {
             description: string(kAXDescriptionAttribute, from: element),
             value: string(kAXValueAttribute, from: element),
             identifier: string(kAXIdentifierAttribute, from: element),
+            attributes: attributeNames(of: element),
             actions: actions(of: element),
             frame: frame(of: element).map(AXRectSnapshot.init),
             enabled: boolean(kAXEnabledAttribute, from: element),
@@ -123,6 +231,12 @@ final class AXSnapshotRecorder {
         var names: CFArray?
         guard AXUIElementCopyActionNames(element, &names) == .success else { return [] }
         return (names as? [String]) ?? []
+    }
+
+    private func attributeNames(of element: AXUIElement) -> [String] {
+        var names: CFArray?
+        guard AXUIElementCopyAttributeNames(element, &names) == .success else { return [] }
+        return ((names as? [String]) ?? []).sorted()
     }
 
     private func string(_ attribute: String, from element: AXUIElement) -> String {
