@@ -25,6 +25,13 @@ final class HintOverlayController {
             return HintAssignment(code: code, hint: hint, placement: placement)
         }
         diagnosticLog("show overlay; elements=\(elements.count) assignments=\(assignments.count) maxCodeLength=\(codes.map(\.count).max() ?? 0)")
+        for assignment in assignments {
+            let frame = assignment.hint.frame.integral
+            diagnosticLog(
+                "hint assignment code=\(assignment.code) role=\(assignment.hint.role) "
+                    + "frame=(\(Int(frame.minX)),\(Int(frame.minY)),\(Int(frame.width)),\(Int(frame.height)))"
+            )
+        }
 
         for screen in NSScreen.screens {
             guard let displayID = displayID(for: screen),

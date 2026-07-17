@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B10000000000000000000001 /* AccessibilityScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* AccessibilityScanner.swift */; };
-		B10000000000000000000002 /* AXInspectorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* AXInspectorWindowController.swift */; };
+		B10000000000000000000002 /* CompatibilityLabWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* CompatibilityLabWindowController.swift */; };
 		B10000000000000000000003 /* AXSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* AXSnapshot.swift */; };
 		B10000000000000000000004 /* FocusDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* FocusDetector.swift */; };
 		B10000000000000000000005 /* HintEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000005 /* HintEngine.swift */; };
@@ -38,6 +38,32 @@
 		B10000000000000000000022 /* TerminalSessionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000022 /* TerminalSessionResolver.swift */; };
 		B10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */; };
 		B10000000000000000000024 /* ModeMotionLabWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000024 /* ModeMotionLabWindowController.swift */; };
+		B10000000000000000000025 /* ApplicationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000025 /* ApplicationAdapter.swift */; };
+		B10000000000000000000026 /* AXEditorResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000026 /* AXEditorResolver.swift */; };
+		B10000000000000000000027 /* AdapterEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000027 /* AdapterEnvironment.swift */; };
+		B10000000000000000000028 /* AdapterCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000028 /* AdapterCapabilities.swift */; };
+		B10000000000000000000029 /* ApplicationAdapterRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000029 /* ApplicationAdapterRegistry.swift */; };
+		B1000000000000000000002A /* EditorTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000002A /* EditorTarget.swift */; };
+		B1000000000000000000002B /* ElectronAccessibilityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000002B /* ElectronAccessibilityBridge.swift */; };
+		B1000000000000000000002C /* AdapterCommandExecutors.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000002C /* AdapterCommandExecutors.swift */; };
+		B1000000000000000000002D /* WeChatApplicationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000002D /* WeChatApplicationAdapter.swift */; };
+		B1000000000000000000002E /* LarkApplicationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000002E /* LarkApplicationAdapter.swift */; };
+		B1000000000000000000002F /* TelegramApplicationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000002F /* TelegramApplicationAdapter.swift */; };
+		B10000000000000000000030 /* TerminalApplicationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000030 /* TerminalApplicationAdapter.swift */; };
+		B10000000000000000000031 /* GenericAXApplicationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000031 /* GenericAXApplicationAdapter.swift */; };
+		B10000000000000000000032 /* ApplicationAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000032 /* ApplicationAdapterTests.swift */; };
+		B10000000000000000000033 /* CodexApplicationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000033 /* CodexApplicationAdapter.swift */; };
+		B10000000000000000000034 /* ApplicationFingerprint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000034 /* ApplicationFingerprint.swift */; };
+		B10000000000000000000035 /* CapabilityReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000035 /* CapabilityReport.swift */; };
+		B10000000000000000000036 /* ApplicationCapabilityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000036 /* ApplicationCapabilityProbe.swift */; };
+		B10000000000000000000037 /* AXCapabilityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000037 /* AXCapabilityProbe.swift */; };
+		B10000000000000000000038 /* CapabilityPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000038 /* CapabilityPlanner.swift */; };
+		B10000000000000000000039 /* CapabilityReportCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000039 /* CapabilityReportCache.swift */; };
+		B1000000000000000000003A /* ApplicationIntegrationRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003A /* ApplicationIntegrationRuntime.swift */; };
+		B1000000000000000000003B /* CompatibilityArtifact.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003B /* CompatibilityArtifact.swift */; };
+		B1000000000000000000003C /* CapabilityArchitectureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003C /* CapabilityArchitectureTests.swift */; };
+		B1000000000000000000003D /* AXHitTestHintProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003D /* AXHitTestHintProvider.swift */; };
+		B1000000000000000000003E /* TelegramVisualHintProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003E /* TelegramVisualHintProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,7 +78,7 @@
 
 /* Begin PBXFileReference section */
 		F10000000000000000000001 /* AccessibilityScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityScanner.swift; sourceTree = "<group>"; };
-		F10000000000000000000002 /* AXInspectorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXInspectorWindowController.swift; sourceTree = "<group>"; };
+		F10000000000000000000002 /* CompatibilityLabWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityLabWindowController.swift; sourceTree = "<group>"; };
 		F10000000000000000000003 /* AXSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXSnapshot.swift; sourceTree = "<group>"; };
 		F10000000000000000000004 /* FocusDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusDetector.swift; sourceTree = "<group>"; };
 		F10000000000000000000005 /* HintEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintEngine.swift; sourceTree = "<group>"; };
@@ -85,6 +111,32 @@
 		F10000000000000000000022 /* TerminalSessionResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalSessionResolver.swift; sourceTree = "<group>"; };
 		F10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadlineTUIVimCommandExecutor.swift; sourceTree = "<group>"; };
 		F10000000000000000000024 /* ModeMotionLabWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeMotionLabWindowController.swift; sourceTree = "<group>"; };
+		F10000000000000000000025 /* ApplicationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationAdapter.swift; sourceTree = "<group>"; };
+		F10000000000000000000026 /* AXEditorResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXEditorResolver.swift; sourceTree = "<group>"; };
+		F10000000000000000000027 /* AdapterEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdapterEnvironment.swift; sourceTree = "<group>"; };
+		F10000000000000000000028 /* AdapterCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdapterCapabilities.swift; sourceTree = "<group>"; };
+		F10000000000000000000029 /* ApplicationAdapterRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationAdapterRegistry.swift; sourceTree = "<group>"; };
+		F1000000000000000000002A /* EditorTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTarget.swift; sourceTree = "<group>"; };
+		F1000000000000000000002B /* ElectronAccessibilityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElectronAccessibilityBridge.swift; sourceTree = "<group>"; };
+		F1000000000000000000002C /* AdapterCommandExecutors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdapterCommandExecutors.swift; sourceTree = "<group>"; };
+		F1000000000000000000002D /* WeChatApplicationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatApplicationAdapter.swift; sourceTree = "<group>"; };
+		F1000000000000000000002E /* LarkApplicationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LarkApplicationAdapter.swift; sourceTree = "<group>"; };
+		F1000000000000000000002F /* TelegramApplicationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramApplicationAdapter.swift; sourceTree = "<group>"; };
+		F10000000000000000000030 /* TerminalApplicationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalApplicationAdapter.swift; sourceTree = "<group>"; };
+		F10000000000000000000031 /* GenericAXApplicationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericAXApplicationAdapter.swift; sourceTree = "<group>"; };
+		F10000000000000000000032 /* ApplicationAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationAdapterTests.swift; sourceTree = "<group>"; };
+		F10000000000000000000033 /* CodexApplicationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexApplicationAdapter.swift; sourceTree = "<group>"; };
+		F10000000000000000000034 /* ApplicationFingerprint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationFingerprint.swift; sourceTree = "<group>"; };
+		F10000000000000000000035 /* CapabilityReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapabilityReport.swift; sourceTree = "<group>"; };
+		F10000000000000000000036 /* ApplicationCapabilityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationCapabilityProbe.swift; sourceTree = "<group>"; };
+		F10000000000000000000037 /* AXCapabilityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXCapabilityProbe.swift; sourceTree = "<group>"; };
+		F10000000000000000000038 /* CapabilityPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapabilityPlanner.swift; sourceTree = "<group>"; };
+		F10000000000000000000039 /* CapabilityReportCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapabilityReportCache.swift; sourceTree = "<group>"; };
+		F1000000000000000000003A /* ApplicationIntegrationRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationIntegrationRuntime.swift; sourceTree = "<group>"; };
+		F1000000000000000000003B /* CompatibilityArtifact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityArtifact.swift; sourceTree = "<group>"; };
+		F1000000000000000000003C /* CapabilityArchitectureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapabilityArchitectureTests.swift; sourceTree = "<group>"; };
+		F1000000000000000000003D /* AXHitTestHintProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXHitTestHintProvider.swift; sourceTree = "<group>"; };
+		F1000000000000000000003E /* TelegramVisualHintProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramVisualHintProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,11 +182,12 @@
 			children = (
 				G10000000000000000000010 /* Accessibility */,
 				G10000000000000000000012 /* App */,
+				G10000000000000000000020 /* ApplicationIntegration */,
 				G1000000000000000000001B /* Vim */,
 				G10000000000000000000013 /* Diagnostics */,
 				G10000000000000000000014 /* Hints */,
 				G10000000000000000000015 /* Input */,
-				G10000000000000000000016 /* Inspector */,
+				G10000000000000000000016 /* Research */,
 				G10000000000000000000017 /* UI */,
 				G10000000000000000000011 /* Activation */,
 			);
@@ -178,6 +231,7 @@
 			isa = PBXGroup;
 			children = (
 				G10000000000000000000018 /* Activation */,
+				G1000000000000000000002B /* ApplicationIntegration */,
 				G10000000000000000000019 /* Vim */,
 				G10000000000000000000009 /* Fixtures */,
 				G1000000000000000000001A /* Hints */,
@@ -247,13 +301,12 @@
 			path = Input;
 			sourceTree = "<group>";
 		};
-		G10000000000000000000016 /* Inspector */ = {
+		G10000000000000000000016 /* Research */ = {
 			isa = PBXGroup;
 			children = (
-				F10000000000000000000002 /* AXInspectorWindowController.swift */,
-				F10000000000000000000003 /* AXSnapshot.swift */,
+				G10000000000000000000035 /* CompatibilityLab */,
 			);
-			path = Inspector;
+			path = Research;
 			sourceTree = "<group>";
 		};
 		G10000000000000000000017 /* UI */ = {
@@ -314,7 +367,6 @@
 			isa = PBXGroup;
 			children = (
 				F10000000000000000000004 /* FocusDetector.swift */,
-				F10000000000000000000022 /* TerminalSessionResolver.swift */,
 			);
 			path = Session;
 			sourceTree = "<group>";
@@ -336,6 +388,184 @@
 				F10000000000000000000021 /* TerminalVimCommandExecutor.swift */,
 			);
 			path = Execution;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000020 /* ApplicationIntegration */ = {
+			isa = PBXGroup;
+			children = (
+				G1000000000000000000002E /* Capabilities */,
+				G10000000000000000000021 /* Mechanisms */,
+				G1000000000000000000002D /* Model */,
+				G1000000000000000000002F /* Planning */,
+				G10000000000000000000030 /* Probing */,
+				G10000000000000000000022 /* Profiles */,
+				G10000000000000000000031 /* Runtime */,
+				G10000000000000000000023 /* Terminal */,
+			);
+			path = ApplicationIntegration;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000021 /* Mechanisms */ = {
+			isa = PBXGroup;
+			children = (
+				G10000000000000000000025 /* Accessibility */,
+				G10000000000000000000026 /* Electron */,
+				G10000000000000000000027 /* Execution */,
+			);
+			path = Mechanisms;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000022 /* Profiles */ = {
+			isa = PBXGroup;
+			children = (
+				G1000000000000000000002C /* Codex */,
+				G10000000000000000000024 /* Generic */,
+				G10000000000000000000029 /* Lark */,
+				G1000000000000000000002A /* Telegram */,
+				G10000000000000000000028 /* WeChat */,
+			);
+			path = Profiles;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000023 /* Terminal */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000030 /* TerminalApplicationAdapter.swift */,
+				F10000000000000000000022 /* TerminalSessionResolver.swift */,
+			);
+			path = Terminal;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000024 /* Generic */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000031 /* GenericAXApplicationAdapter.swift */,
+			);
+			path = Generic;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000025 /* Accessibility */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000026 /* AXEditorResolver.swift */,
+				F1000000000000000000003D /* AXHitTestHintProvider.swift */,
+			);
+			path = Accessibility;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000026 /* Electron */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000002B /* ElectronAccessibilityBridge.swift */,
+			);
+			path = Electron;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000027 /* Execution */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000002C /* AdapterCommandExecutors.swift */,
+			);
+			path = Execution;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000028 /* WeChat */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000002D /* WeChatApplicationAdapter.swift */,
+			);
+			path = WeChat;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000029 /* Lark */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000002E /* LarkApplicationAdapter.swift */,
+			);
+			path = Lark;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000002A /* Telegram */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000002F /* TelegramApplicationAdapter.swift */,
+				F1000000000000000000003E /* TelegramVisualHintProvider.swift */,
+			);
+			path = Telegram;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000002B /* ApplicationIntegration */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000032 /* ApplicationAdapterTests.swift */,
+				F1000000000000000000003C /* CapabilityArchitectureTests.swift */,
+			);
+			path = ApplicationIntegration;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000002C /* Codex */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000033 /* CodexApplicationAdapter.swift */,
+			);
+			path = Codex;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000002D /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000027 /* AdapterEnvironment.swift */,
+				F10000000000000000000034 /* ApplicationFingerprint.swift */,
+				F10000000000000000000035 /* CapabilityReport.swift */,
+				F1000000000000000000002A /* EditorTarget.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000002E /* Capabilities */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000028 /* AdapterCapabilities.swift */,
+				F10000000000000000000025 /* ApplicationAdapter.swift */,
+			);
+			path = Capabilities;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000002F /* Planning */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000038 /* CapabilityPlanner.swift */,
+			);
+			path = Planning;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000030 /* Probing */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000037 /* AXCapabilityProbe.swift */,
+				F10000000000000000000036 /* ApplicationCapabilityProbe.swift */,
+			);
+			path = Probing;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000031 /* Runtime */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000003A /* ApplicationIntegrationRuntime.swift */,
+				F10000000000000000000029 /* ApplicationAdapterRegistry.swift */,
+				F10000000000000000000039 /* CapabilityReportCache.swift */,
+			);
+			path = Runtime;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000035 /* CompatibilityLab */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000003 /* AXSnapshot.swift */,
+				F1000000000000000000003B /* CompatibilityArtifact.swift */,
+				F10000000000000000000002 /* CompatibilityLabWindowController.swift */,
+			);
+			path = CompatibilityLab;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -438,7 +668,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B10000000000000000000001 /* AccessibilityScanner.swift in Sources */,
-				B10000000000000000000002 /* AXInspectorWindowController.swift in Sources */,
+				B10000000000000000000002 /* CompatibilityLabWindowController.swift in Sources */,
 				B10000000000000000000003 /* AXSnapshot.swift in Sources */,
 				B10000000000000000000004 /* FocusDetector.swift in Sources */,
 				B10000000000000000000005 /* HintEngine.swift in Sources */,
@@ -463,6 +693,30 @@
 				B10000000000000000000022 /* TerminalSessionResolver.swift in Sources */,
 				B10000000000000000000023 /* ReadlineTUIVimCommandExecutor.swift in Sources */,
 				B10000000000000000000024 /* ModeMotionLabWindowController.swift in Sources */,
+				B10000000000000000000025 /* ApplicationAdapter.swift in Sources */,
+				B10000000000000000000026 /* AXEditorResolver.swift in Sources */,
+				B10000000000000000000027 /* AdapterEnvironment.swift in Sources */,
+				B10000000000000000000028 /* AdapterCapabilities.swift in Sources */,
+				B10000000000000000000029 /* ApplicationAdapterRegistry.swift in Sources */,
+				B1000000000000000000002A /* EditorTarget.swift in Sources */,
+				B1000000000000000000002B /* ElectronAccessibilityBridge.swift in Sources */,
+				B1000000000000000000002C /* AdapterCommandExecutors.swift in Sources */,
+				B1000000000000000000002D /* WeChatApplicationAdapter.swift in Sources */,
+				B1000000000000000000002E /* LarkApplicationAdapter.swift in Sources */,
+				B1000000000000000000002F /* TelegramApplicationAdapter.swift in Sources */,
+				B10000000000000000000030 /* TerminalApplicationAdapter.swift in Sources */,
+				B10000000000000000000031 /* GenericAXApplicationAdapter.swift in Sources */,
+				B10000000000000000000033 /* CodexApplicationAdapter.swift in Sources */,
+				B10000000000000000000034 /* ApplicationFingerprint.swift in Sources */,
+				B10000000000000000000035 /* CapabilityReport.swift in Sources */,
+				B10000000000000000000036 /* ApplicationCapabilityProbe.swift in Sources */,
+				B10000000000000000000037 /* AXCapabilityProbe.swift in Sources */,
+				B10000000000000000000038 /* CapabilityPlanner.swift in Sources */,
+				B10000000000000000000039 /* CapabilityReportCache.swift in Sources */,
+				B1000000000000000000003A /* ApplicationIntegrationRuntime.swift in Sources */,
+				B1000000000000000000003B /* CompatibilityArtifact.swift in Sources */,
+				B1000000000000000000003D /* AXHitTestHintProvider.swift in Sources */,
+				B1000000000000000000003E /* TelegramVisualHintProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -473,6 +727,8 @@
 				B10000000000000000000008 /* HintEngineTests.swift in Sources */,
 				B1000000000000000000001B /* ElementActivatorStrategyTests.swift in Sources */,
 				B1000000000000000000001C /* InteractionStateTests.swift in Sources */,
+				B10000000000000000000032 /* ApplicationAdapterTests.swift in Sources */,
+				B1000000000000000000003C /* CapabilityArchitectureTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

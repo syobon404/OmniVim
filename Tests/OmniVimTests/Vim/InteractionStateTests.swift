@@ -1,4 +1,5 @@
 import XCTest
+import AppKit
 import Carbon.HIToolbox
 @testable import OmniVim
 
@@ -79,12 +80,6 @@ final class InteractionStateTests: XCTestCase {
                 resultingMode: .insert
             )
         )
-    }
-
-    func testTerminalApplicationPolicyRecognizesKitty() {
-        XCTAssertTrue(TerminalApplicationPolicy.isTerminal(bundleIdentifier: "net.kovidgoyal.kitty"))
-        XCTAssertFalse(TerminalApplicationPolicy.isTerminal(bundleIdentifier: "com.apple.Notes"))
-        XCTAssertFalse(TerminalApplicationPolicy.isTerminal(bundleIdentifier: nil))
     }
 
     func testTerminalPlanUsesNativeFishWordDeletion() {
