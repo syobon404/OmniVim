@@ -64,6 +64,7 @@
 		B1000000000000000000003C /* CapabilityArchitectureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003C /* CapabilityArchitectureTests.swift */; };
 		B1000000000000000000003D /* AXHitTestHintProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003D /* AXHitTestHintProvider.swift */; };
 		B1000000000000000000003E /* TelegramVisualHintProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003E /* TelegramVisualHintProvider.swift */; };
+		B1000000000000000000003F /* WeChatVisualHintProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003F /* WeChatVisualHintProvider.swift */; };
 		B10000000000000000000040 /* GPAElementDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000040 /* GPAElementDetector.swift */; };
 /* End PBXBuildFile section */
 
@@ -138,6 +139,7 @@
 		F1000000000000000000003C /* CapabilityArchitectureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapabilityArchitectureTests.swift; sourceTree = "<group>"; };
 		F1000000000000000000003D /* AXHitTestHintProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXHitTestHintProvider.swift; sourceTree = "<group>"; };
 		F1000000000000000000003E /* TelegramVisualHintProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramVisualHintProvider.swift; sourceTree = "<group>"; };
+		F1000000000000000000003F /* WeChatVisualHintProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatVisualHintProvider.swift; sourceTree = "<group>"; };
 		F10000000000000000000040 /* GPAElementDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPAElementDetector.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -484,6 +486,7 @@
 			isa = PBXGroup;
 			children = (
 				F1000000000000000000002D /* WeChatApplicationAdapter.swift */,
+				F1000000000000000000003F /* WeChatVisualHintProvider.swift */,
 			);
 			path = WeChat;
 			sourceTree = "<group>";
@@ -728,6 +731,7 @@
 				B1000000000000000000003B /* CompatibilityArtifact.swift in Sources */,
 				B1000000000000000000003D /* AXHitTestHintProvider.swift in Sources */,
 				B1000000000000000000003E /* TelegramVisualHintProvider.swift in Sources */,
+				B1000000000000000000003F /* WeChatVisualHintProvider.swift in Sources */,
 				B10000000000000000000040 /* GPAElementDetector.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

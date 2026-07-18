@@ -13,9 +13,13 @@ struct WeChatApplicationAdapter: ApplicationAdapter {
     }
 
     func capabilities(for environment: AdapterEnvironment) -> AdapterCapabilities {
-        AdapterCapabilities(editorResolver: CapabilityPlanner().editorResolver(
-            for: environment.capabilityReport,
-            allowsInference: true
-        ))
+        AdapterCapabilities(
+            editorResolver: CapabilityPlanner().editorResolver(
+                for: environment.capabilityReport,
+                allowsInference: true
+            ),
+            hintProvider: WeChatHintProvider(),
+            activator: CoordinateElementActivator()
+        )
     }
 }

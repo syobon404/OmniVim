@@ -31,8 +31,9 @@ programs that already provide their own modal editing.
 | Native macOS text fields | Supported | Synthesized macOS editing and selection shortcuts |
 | Accessible buttons, links, menus, and rows | Partial | Accessibility actions with role-specific fallbacks |
 | Chromium and Electron controls | Partial | Depends on the application's Accessibility and event bridge |
-| Telegram Desktop | Experimental | AX hit testing, on-device Vision OCR, layout inference, and coordinate activation |
-| WeChat and Lark | Early adapter | App profile exists; coverage still depends on the UI exposed through Accessibility |
+| Telegram Desktop | Experimental | GPA-GUI visual detection and coordinate activation |
+| WeChat Desktop | Experimental | GPA-GUI visual detection and coordinate activation |
+| Lark | Early adapter | Electron profile exists; coverage still depends on the UI exposed through Accessibility |
 | Kitty + fish prompt | Supported | Kitty session detection plus a fish `commandline` companion |
 | Kitty + `agy` | Experimental | Readline-style keyboard adapter |
 | Vim, Neovim, Helix, and Kakoune | Bypassed | Input is returned to the program unchanged |
@@ -84,35 +85,32 @@ prefix character and `Esc` dismisses the overlay.
 Hint codes are prefix-free and variable length. Markers are deduplicated before layout and rendered
 in one transparent panel per display.
 
-### Telegram visual hints
+### Telegram and WeChat visual hints
 
-Telegram Desktop exposes its editor through Accessibility but does not expose most of its sidebar
-and toolbar as useful AX controls. OmniVim therefore combines three local discovery mechanisms:
+Telegram and WeChat expose little of their main interface as useful AX controls. For normal UI
+hints, OmniVim captures the current application window and runs the GPA-GUI YOLO detector locally:
 
 ```text
-Telegram front window
+Messaging app front window
         │
-        ├── AX hit-test grid ──────────────► real editable/actionable controls
-        ├── ScreenCaptureKit + Vision OCR ─► visible chat-row anchors
-        └── Telegram layout profile ───────► icon controls without text labels
-                                             (Call, Search, More, Attach, Emoji, Voice)
-                            │
-                            ▼
-                 deduplicated global frames
-                            │
-                            ▼
-                  hint code → center click
+        ├── ScreenCaptureKit
+        ▼
+ Salesforce GPA-GUI Detector (Core ML)
+        │
+        ├── confidence and geometry filtering
+        ▼
+ detected global frames → hint code → center click
 ```
 
-Vision runs with fast recognition and converts normalized OCR bounding boxes into global screen
-coordinates. Recognized sidebar text is grouped into 70-point chat rows; toolbar icons use offsets
-relative to the current window and inferred sidebar split. Before clicking, OmniVim waits until
-Telegram is actually frontmost, moves the pointer, and sends a Hammerspoon-compatible 200 ms mouse
-down/up sequence. Screenshots are processed in memory and are not saved.
+The detector runs on every normal `Control-F` invocation, so it follows the current layout instead
+of relying on OCR-derived rows or fixed toolbar offsets. Orange outlines expose the exact boxes
+accepted by the detector. Before clicking, OmniVim waits until the target app is actually
+frontmost, moves the pointer, and sends a Hammerspoon-compatible 200 ms mouse down/up sequence.
+Screenshots are processed in memory and are not saved. Text-only hint search continues to use
+Accessibility.
 
-The first Telegram hint request prompts for **Privacy & Security → Screen Recording** if access has
-not already been granted. Accessibility-only hints remain available without visual capture, but
-chat rows and icon-only controls may be missing.
+The first Telegram or WeChat hint request prompts for **Privacy & Security → Screen Recording** if
+access has not already been granted. Visual detection is unavailable without it.
 
 ## Commands
 
@@ -237,16 +235,16 @@ OmniVim deliberately remains inactive. The diagnostic log should identify `nvim`
 
 Some controls report a successful Accessibility action without changing application state.
 System Settings rows require selection semantics, while some Chromium/Electron controls reject
-Accessibility or externally synthesized clicks. Telegram uses coordinate activation and waits for
-the target application to become frontmost before posting the click. Check the diagnostic log for
+Accessibility or externally synthesized clicks. Telegram and WeChat use coordinate activation and
+wait for the target application to become frontmost before posting the click. Check the diagnostic log for
 `coordinate waiting`, `mouse move`, and the matching mouse `phase=down` / `phase=up` entries.
 
-### Telegram hints do not show chat rows
+### Telegram or WeChat visual hints do not appear
 
 Enable OmniVim under **Privacy & Security → Screen Recording**, then restart OmniVim. The log should
-contain `Telegram visual scan`, a non-zero `observations` count, and `screenPermission=true`.
-Accessibility permission alone normally discovers the message editor but not the native Telegram
-sidebar.
+contain `Telegram GPA-only scan` or `WeChat GPA-only scan`, a non-zero `raw` count, and
+`screenPermission=true`. The `captureMs`, `modelLoadMs`, `inferenceMs`, and `totalMs` fields expose
+the cold and warm latency directly.
 
 ### Diagnostic files
 
@@ -303,7 +301,8 @@ the same Vim command model into the editing primitives offered by each foregroun
 - Add adapters for more shells, terminal emulators, and coding-agent TUIs.
 - Detect and bypass additional applications with native modal editing.
 - Improve verified activation for Chromium and Electron accessibility targets.
-- Replace Telegram layout constants with dynamically calibrated visual controls where practical.
+- Replace Telegram and WeChat layout constants with dynamically calibrated visual controls where
+  practical.
 - Make mode-switch chords, indicators, and application policies user-configurable.
 - Introduce richer text-buffer context without sacrificing low resource usage.
 

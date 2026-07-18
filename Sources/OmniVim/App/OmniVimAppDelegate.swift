@@ -107,6 +107,11 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
                 processIdentifier: target.processIdentifier,
                 searchOnly: false
             )
+        } else if ["com.tencent.xinWeChat", "com.tencent.WeChat"].contains(bundleIdentifier) {
+            hints = WeChatHintProvider().hints(
+                processIdentifier: target.processIdentifier,
+                searchOnly: false
+            )
         } else {
             hints = AXHitTestHintScanner().elements(
                 processIdentifier: target.processIdentifier
@@ -137,18 +142,28 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
               let hintIndex = Int(arguments[optionIndex + 2]) else { return false }
 
         let bundleIdentifier = arguments[optionIndex + 1]
-        guard bundleIdentifier == "ru.keepcoder.Telegram",
-              let target = NSRunningApplication
+        guard let target = NSRunningApplication
                 .runningApplications(withBundleIdentifier: bundleIdentifier)
                 .first(where: { !$0.isTerminated }) else {
             diagnosticLog("hint debug activation failed bundle=\(bundleIdentifier) reason=not-running")
             return true
         }
 
-        let hints = TelegramHintProvider().hints(
-            processIdentifier: target.processIdentifier,
-            searchOnly: false
-        )
+        let hints: [UIElementHint]
+        if bundleIdentifier == "ru.keepcoder.Telegram" {
+            hints = TelegramHintProvider().hints(
+                processIdentifier: target.processIdentifier,
+                searchOnly: false
+            )
+        } else if ["com.tencent.xinWeChat", "com.tencent.WeChat"].contains(bundleIdentifier) {
+            hints = WeChatHintProvider().hints(
+                processIdentifier: target.processIdentifier,
+                searchOnly: false
+            )
+        } else {
+            diagnosticLog("hint debug activation failed bundle=\(bundleIdentifier) reason=unsupported")
+            return true
+        }
         guard hints.indices.contains(hintIndex) else {
             diagnosticLog(
                 "hint debug activation failed bundle=\(bundleIdentifier) "

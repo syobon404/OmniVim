@@ -96,6 +96,45 @@ final class ApplicationAdapterTests: XCTestCase {
         )
     }
 
+    func testWeChatOwnsVisualHintDiscoveryAndCoordinateActivation() {
+        let environment = adapterEnvironment("com.tencent.xinWeChat")
+        let adapter = ApplicationAdapterRegistry().adapter(for: environment.application)
+        let capabilities = adapter.capabilities(for: environment)
+
+        XCTAssertTrue(capabilities.hintProvider is WeChatHintProvider)
+        XCTAssertTrue(capabilities.activator is CoordinateElementActivator)
+    }
+
+    func testWeChatReportsScreenRecordingLimitationWhenVisualCaptureIsUnavailable() {
+        let provider = WeChatHintProvider(hasScreenCaptureAccess: { false })
+
+        XCTAssertEqual(
+            provider.discoveryLimitation,
+            .screenRecordingPermissionRequired(applicationName: "WeChat")
+        )
+    }
+
+    func testWeChatChatTextLinesMapToOneVisualRow() {
+        let originY: CGFloat = 240
+
+        XCTAssertEqual(wechatChatRowIndex(y: 255, originY: originY, rowHeight: 69), 0)
+        XCTAssertEqual(wechatChatRowIndex(y: 305, originY: originY, rowHeight: 69), 0)
+        XCTAssertEqual(wechatChatRowIndex(y: 312, originY: originY, rowHeight: 69), 1)
+    }
+
+    func testWeChatSidebarSplitTracksCompactAndWideWindows() {
+        XCTAssertEqual(
+            wechatSidebarSplit(windowFrame: CGRect(x: 100, y: 200, width: 664, height: 740)),
+            358.96,
+            accuracy: 0.01
+        )
+        XCTAssertEqual(
+            wechatSidebarSplit(windowFrame: CGRect(x: 100, y: 200, width: 1_000, height: 740)),
+            400,
+            accuracy: 0.01
+        )
+    }
+
     func testHitTestCandidateAcceptsActionableUnknownRole() {
         XCTAssertTrue(isAXHitTestHintCandidate(
             role: "AXGroup",
