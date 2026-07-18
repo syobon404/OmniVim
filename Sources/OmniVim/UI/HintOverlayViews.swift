@@ -29,6 +29,26 @@ private final class HintCanvasView: NSView {
 }
 
 @MainActor
+final class HintDetectionOutlineView: NSView {
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.systemOrange.withAlphaComponent(0.08).cgColor
+        layer?.borderColor = NSColor.systemOrange.withAlphaComponent(0.95).cgColor
+        layer?.borderWidth = 2
+        layer?.cornerRadius = 4
+    }
+
+    convenience init() {
+        self.init(frame: .zero)
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+}
+
+@MainActor
 final class HintMarkerView: NSView {
     private let code: String
     private let hint: UIElementHint

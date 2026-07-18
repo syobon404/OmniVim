@@ -64,6 +64,7 @@
 		B1000000000000000000003C /* CapabilityArchitectureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003C /* CapabilityArchitectureTests.swift */; };
 		B1000000000000000000003D /* AXHitTestHintProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003D /* AXHitTestHintProvider.swift */; };
 		B1000000000000000000003E /* TelegramVisualHintProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000003E /* TelegramVisualHintProvider.swift */; };
+		B10000000000000000000040 /* GPAElementDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000040 /* GPAElementDetector.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -137,6 +138,7 @@
 		F1000000000000000000003C /* CapabilityArchitectureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapabilityArchitectureTests.swift; sourceTree = "<group>"; };
 		F1000000000000000000003D /* AXHitTestHintProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXHitTestHintProvider.swift; sourceTree = "<group>"; };
 		F1000000000000000000003E /* TelegramVisualHintProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramVisualHintProvider.swift; sourceTree = "<group>"; };
+		F10000000000000000000040 /* GPAElementDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPAElementDetector.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -187,6 +189,7 @@
 				G10000000000000000000013 /* Diagnostics */,
 				G10000000000000000000014 /* Hints */,
 				G10000000000000000000015 /* Input */,
+				G10000000000000000000036 /* Vision */,
 				G10000000000000000000016 /* Research */,
 				G10000000000000000000017 /* UI */,
 				G10000000000000000000011 /* Activation */,
@@ -453,6 +456,14 @@
 			path = Accessibility;
 			sourceTree = "<group>";
 		};
+		G10000000000000000000036 /* Vision */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000040 /* GPAElementDetector.swift */,
+			);
+			path = Vision;
+			sourceTree = "<group>";
+		};
 		G10000000000000000000026 /* Electron */ = {
 			isa = PBXGroup;
 			children = (
@@ -717,6 +728,7 @@
 				B1000000000000000000003B /* CompatibilityArtifact.swift in Sources */,
 				B1000000000000000000003D /* AXHitTestHintProvider.swift in Sources */,
 				B1000000000000000000003E /* TelegramVisualHintProvider.swift in Sources */,
+				B10000000000000000000040 /* GPAElementDetector.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

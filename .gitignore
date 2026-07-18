@@ -4,3 +4,14 @@ OmniVim.app/
 .swiftpm/
 xcuserdata/
 *.xcuserstate
+__pycache__/
+*.pyc
+.direnv/
+.venv/
+
+# GPA GUI detector source weights and generated Core ML artifacts.
+Models/Source/*
+!Models/Source/README.md
+Models/Generated/*
+!Models/Generated/README.md
+Resources/Models/*.mlpackage/

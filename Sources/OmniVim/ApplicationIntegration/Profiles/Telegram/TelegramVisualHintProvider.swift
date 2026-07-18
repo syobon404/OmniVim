@@ -16,8 +16,15 @@ private struct TelegramRecognizedText {
 
 @MainActor
 final class TelegramVisualHintScanner {
+    private let injectedDetectorResult: Result<GPAElementDetector, Error>?
+
+    init(detectorResult: Result<GPAElementDetector, Error>? = nil) {
+        injectedDetectorResult = detectorResult
+    }
+
     func elements(processIdentifier: pid_t) -> [UIElementHint] {
         let startedAt = CFAbsoluteTimeGetCurrent()
+        let captureStartedAt = CFAbsoluteTimeGetCurrent()
         guard let capturedWindow = captureWindow(processIdentifier: processIdentifier) else {
             diagnosticLog(
                 "Telegram visual scan pid=\(processIdentifier) capture=unavailable "
@@ -25,24 +32,85 @@ final class TelegramVisualHintScanner {
             )
             return []
         }
+        let captureMilliseconds = milliseconds(since: captureStartedAt)
 
-        let observations = recognizeText(in: capturedWindow)
+        let modelLoadStartedAt = CFAbsoluteTimeGetCurrent()
+        let detectorResult = injectedDetectorResult ?? GPAElementDetector.defaultResult
+        let modelLoadMilliseconds = milliseconds(since: modelLoadStartedAt)
+        let detector: GPAElementDetector
+        switch detectorResult {
+        case .success(let availableDetector):
+            detector = availableDetector
+        case .failure(let error):
+            diagnosticLog(
+                "Telegram GPA-only scan model=unavailable "
+                    + "captureMs=\(captureMilliseconds) modelLoadMs=\(modelLoadMilliseconds) "
+                    + "totalMs=\(milliseconds(since: startedAt)) "
+                    + "error=\(error.localizedDescription)"
+            )
+            return []
+        }
+
+        let inferenceStartedAt = CFAbsoluteTimeGetCurrent()
+        let rawDetections: [GPAGUIElementDetection]
+        do {
+            rawDetections = try detector.detect(
+                in: capturedWindow.image,
+                minimumConfidence: 0.05
+            )
+        } catch {
+            diagnosticLog(
+                "Telegram GPA-only scan inference=failed "
+                    + "captureMs=\(captureMilliseconds) modelLoadMs=\(modelLoadMilliseconds) "
+                    + "inferenceMs=\(milliseconds(since: inferenceStartedAt)) "
+                    + "totalMs=\(milliseconds(since: startedAt)) "
+                    + "error=\(error.localizedDescription)"
+            )
+            return []
+        }
+        let inferenceMilliseconds = milliseconds(since: inferenceStartedAt)
+
         let application = AXUIElementCreateApplication(processIdentifier)
-        let editorFrame = focusedEditorFrame(in: application)
-        let hints = layoutHints(
-            observations: observations,
-            windowFrame: capturedWindow.frame,
-            editorFrame: editorFrame,
-            application: application,
-            processIdentifier: processIdentifier
-        )
-        let elapsedMilliseconds = Int((CFAbsoluteTimeGetCurrent() - startedAt) * 1_000)
+        let windowArea = capturedWindow.frame.width * capturedWindow.frame.height
+        let hints = rawDetections.compactMap { detection -> UIElementHint? in
+            guard detection.confidence >= 0.20 else { return nil }
+            let frame = detection.globalFrame(in: capturedWindow.frame)
+                .intersection(capturedWindow.frame)
+            let area = frame.width * frame.height
+            guard !frame.isNull,
+                  frame.width >= 10,
+                  frame.height >= 10,
+                  area <= windowArea * 0.20 else { return nil }
+            return UIElementHint(
+                element: application,
+                processIdentifier: processIdentifier,
+                role: "AXVisualControl",
+                subrole: "GPAInteractiveElement",
+                title: String(format: "GPA %.2f", detection.confidence),
+                frame: frame
+            )
+        }
         diagnosticLog(
-            "Telegram visual scan pid=\(processIdentifier) observations=\(observations.count) "
-                + "hints=\(hints.count) elapsedMs=\(elapsedMilliseconds) "
+            "Telegram GPA-only scan pid=\(processIdentifier) raw=\(rawDetections.count) "
+                + "accepted=\(hints.count) captureMs=\(captureMilliseconds) "
+                + "modelLoadMs=\(modelLoadMilliseconds) inferenceMs=\(inferenceMilliseconds) "
+                + "totalMs=\(milliseconds(since: startedAt)) "
                 + "screenPermission=\(CGPreflightScreenCaptureAccess())"
         )
+#if DEBUG
+        for (index, hint) in hints.prefix(250).enumerated() {
+            diagnosticLog(
+                "Telegram GPA detection index=\(index) confidence=\(hint.title) "
+                    + "frame=x=\(Int(hint.frame.minX)) y=\(Int(hint.frame.minY)) "
+                    + "w=\(Int(hint.frame.width)) h=\(Int(hint.frame.height))"
+            )
+        }
+#endif
         return hints
+    }
+
+    private func milliseconds(since start: CFAbsoluteTime) -> Int {
+        Int((CFAbsoluteTimeGetCurrent() - start) * 1_000)
     }
 
     private func captureWindow(processIdentifier: pid_t) -> TelegramCapturedWindow? {
@@ -429,30 +497,16 @@ struct TelegramHintProvider: AdapterHintProviding {
 
     @MainActor
     func hints(processIdentifier: pid_t, searchOnly: Bool) -> [UIElementHint] {
-        let accessibilityHints = AXHitTestHintScanner().elements(
-            processIdentifier: processIdentifier
-        )
         if searchOnly {
-            return accessibilityHints.filter {
+            return AXHitTestHintScanner().elements(
+                processIdentifier: processIdentifier
+            ).filter {
                 ["AXTextField", "AXTextArea", "AXSearchField"].contains($0.role)
             }
         }
 
-        let visualHints = TelegramVisualHintScanner().elements(
+        return TelegramVisualHintScanner().elements(
             processIdentifier: processIdentifier
         )
-        return accessibilityHints + visualHints.filter { visual in
-            !accessibilityHints.contains { accessibility in
-                overlapRatio(accessibility.frame, visual.frame) >= 0.7
-            }
-        }
-    }
-
-    private func overlapRatio(_ lhs: CGRect, _ rhs: CGRect) -> CGFloat {
-        let intersection = lhs.intersection(rhs)
-        guard !intersection.isNull else { return 0 }
-        let denominator = min(lhs.width * lhs.height, rhs.width * rhs.height)
-        guard denominator > 0 else { return 0 }
-        return intersection.width * intersection.height / denominator
     }
 }

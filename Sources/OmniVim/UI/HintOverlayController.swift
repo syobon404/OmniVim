@@ -5,6 +5,7 @@ final class HintOverlayController {
     private let hintCharacters = Array("sadfjklewcmpgh")
     private var panels: [CGDirectDisplayID: HintPanel] = [:]
     private var markers: [String: HintMarkerView] = [:]
+    private var detectionOutlines: [String: HintDetectionOutlineView] = [:]
     private var hints: [String: UIElementHint] = [:]
     private var typedPrefix = ""
 
@@ -56,6 +57,16 @@ final class HintOverlayController {
                   let contentView = panel.contentView,
                   let resolvedGlobalFrame = resolvedFrames[assignment.code] else { continue }
             let localFrame = resolvedGlobalFrame.offsetBy(dx: -panel.frame.minX, dy: -panel.frame.minY)
+            if assignment.hint.subrole == "GPAInteractiveElement" {
+                let outline = HintDetectionOutlineView()
+                outline.frame = localTargetFrame(
+                    assignment.hint.frame,
+                    displayID: assignment.placement.displayID,
+                    panel: panel
+                )
+                contentView.addSubview(outline)
+                detectionOutlines[assignment.code] = outline
+            }
             let marker = HintMarkerView(code: assignment.code, hint: assignment.hint) { [weak self] hint in
                 self?.onTargetSelected?(hint)
             }
@@ -75,6 +86,7 @@ final class HintOverlayController {
         panels.values.forEach { $0.orderOut(nil) }
         panels.removeAll()
         markers.removeAll()
+        detectionOutlines.removeAll()
         hints.removeAll()
         typedPrefix = ""
     }
@@ -102,9 +114,25 @@ final class HintOverlayController {
 
     private func updateVisibleMarkers() {
         for (code, marker) in markers {
-            marker.isHidden = !code.hasPrefix(typedPrefix)
+            let hidden = !code.hasPrefix(typedPrefix)
+            marker.isHidden = hidden
+            detectionOutlines[code]?.isHidden = hidden
             marker.update(matchingPrefixLength: typedPrefix.count)
         }
+    }
+
+    private func localTargetFrame(
+        _ targetFrame: CGRect,
+        displayID: CGDirectDisplayID,
+        panel: HintPanel
+    ) -> CGRect {
+        let displayBounds = CGDisplayBounds(displayID)
+        return CGRect(
+            x: targetFrame.minX - displayBounds.minX,
+            y: panel.frame.height - (targetFrame.maxY - displayBounds.minY),
+            width: targetFrame.width,
+            height: targetFrame.height
+        ).intersection(CGRect(origin: .zero, size: panel.frame.size))
     }
 
     private func placement(for axFrame: CGRect, codeLength: Int) -> HintPlacement? {
