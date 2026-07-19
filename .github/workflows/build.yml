@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: Test and build
+    runs-on: macos-26
+    timeout-minutes: 30
+
+    env:
+      DERIVED_DATA: ${{ github.workspace }}/.build/XcodeCI
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Show toolchain versions
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Verify bundled GPA model
+        run: |
+          MODEL="Resources/Models/GPA_GUI_Detector.mlpackage"
+
+          test -f "$MODEL/Manifest.json"
+          test -d "$MODEL/Data"
+          test -f "$MODEL/Data/com.apple.CoreML/weights/weight.bin"
+
+          echo "GPA model package is present."
+          du -sh "$MODEL"
+
+      - name: Run Swift tests
+        run: swift test
+
+      - name: Build unsigned application
+        run: |
+          xcodebuild \
+            -project OmniVim.xcodeproj \
+            -scheme OmniVim \
+            -configuration Release \
+            -derivedDataPath "$DERIVED_DATA" \
+            -destination "platform=macOS,arch=arm64" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Verify application bundle
+        run: |
+          APP="$DERIVED_DATA/Build/Products/Release/OmniVim.app"
+          MODEL="$APP/Contents/Resources/GPA_GUI_Detector.mlmodelc"
+
+          test -d "$APP"
+          test -x "$APP/Contents/MacOS/OmniVim"
+          test -d "$MODEL"
+
+          echo "Application and compiled GPA model verified."
+          du -sh "$APP"
