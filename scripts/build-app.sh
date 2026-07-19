@@ -11,9 +11,8 @@ RUNTIME_MODEL="$ROOT/Resources/Models/GPA_GUI_Detector.mlpackage"
 
 if [ ! -f "$RUNTIME_MODEL/Manifest.json" ] || [ ! -d "$RUNTIME_MODEL/Data" ]; then
   echo "Bundled GPA model is missing: $RUNTIME_MODEL" >&2
-  echo "Generate and promote it before building:" >&2
-  echo "  python Tools/ModelConversion/GPA/convert.py" >&2
-  echo "  ./scripts/promote-gpa-model.sh" >&2
+  echo "Restore the tracked Resources/Models directory and try again." >&2
+  echo "Maintainers can generate a replacement with the documented conversion workflow." >&2
   exit 1
 fi
 

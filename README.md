@@ -49,16 +49,12 @@ OmniVim currently ships as a development build. Xcode is required.
 ```sh
 git clone git@github.com:syobon404/OmniVim.git
 cd OmniVim
-nix develop
-python Tools/ModelConversion/GPA/convert.py
-./scripts/promote-gpa-model.sh
-./scripts/build-app.sh
-open .build/App/OmniVim.app
+./scripts/run-app.sh
 ```
 
-The script builds the canonical Xcode target and places the signed development app at
-`.build/App/OmniVim.app`. To build, restart, and open that exact workspace copy in one step, run
-`./scripts/run-app.sh`.
+The repository includes the validated Core ML runtime model. The script builds the canonical Xcode
+target, places the signed development app at `.build/App/OmniVim.app`, restarts OmniVim, and opens
+that exact workspace copy.
 
 ### 2. Grant Accessibility permission
 

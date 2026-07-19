@@ -16,4 +16,3 @@ Models/Source/*
 !Models/Source/README.md
 Models/Generated/*
 !Models/Generated/README.md
-Resources/Models/*.mlpackage/

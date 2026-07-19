@@ -29,7 +29,8 @@ export, promote it into the Xcode runtime resources:
 ./scripts/promote-gpa-model.sh
 ```
 
-Xcode compiles the promoted package to `GPA_GUI_Detector.mlmodelc` and embeds it in the app.
+The promoted runtime package is committed so fresh clones can build without the Python conversion
+environment. Xcode compiles it to `GPA_GUI_Detector.mlmodelc` and embeds it in the app.
 
 Set `OMNIVIM_GPA_MODEL_PATH` to test a model at another location. The source-tree generated model is
 only considered when `OMNIVIM_ALLOW_DEVELOPMENT_MODEL_FALLBACK=1`; ordinary app builds use the
