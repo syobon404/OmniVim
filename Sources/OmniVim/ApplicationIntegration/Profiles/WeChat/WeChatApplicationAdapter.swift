@@ -18,7 +18,7 @@ struct WeChatApplicationAdapter: ApplicationAdapter {
                 for: environment.capabilityReport,
                 allowsInference: true
             ),
-            hintProvider: WeChatHintProvider(),
+            hintProvider: GPAHintProvider(configuration: .weChat),
             activator: CoordinateElementActivator()
         )
     }

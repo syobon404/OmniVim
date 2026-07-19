@@ -51,12 +51,16 @@ final class ApplicationAdapterTests: XCTestCase {
         let adapter = ApplicationAdapterRegistry().adapter(for: environment.application)
         let capabilities = adapter.capabilities(for: environment)
 
-        XCTAssertTrue(capabilities.hintProvider is TelegramHintProvider)
+        let provider = capabilities.hintProvider as? GPAHintProvider
+        XCTAssertEqual(provider?.configuration, .telegram)
         XCTAssertTrue(capabilities.activator is CoordinateElementActivator)
     }
 
     func testTelegramReportsScreenRecordingLimitationWhenVisualCaptureIsUnavailable() {
-        let provider = TelegramHintProvider(hasScreenCaptureAccess: { false })
+        let provider = GPAHintProvider(
+            configuration: .telegram,
+            hasScreenCaptureAccess: { false }
+        )
 
         XCTAssertEqual(
             provider.discoveryLimitation,
@@ -65,35 +69,12 @@ final class ApplicationAdapterTests: XCTestCase {
     }
 
     func testTelegramHasNoHintDiscoveryLimitationWhenVisualCaptureIsAvailable() {
-        let provider = TelegramHintProvider(hasScreenCaptureAccess: { true })
+        let provider = GPAHintProvider(
+            configuration: .telegram,
+            hasScreenCaptureAccess: { true }
+        )
 
         XCTAssertNil(provider.discoveryLimitation)
-    }
-
-    func testTelegramChatTextLinesMapToOneVisualRow() {
-        let originY: CGFloat = 340
-
-        XCTAssertEqual(telegramChatRowIndex(y: 360, originY: originY, rowHeight: 70), 0)
-        XCTAssertEqual(telegramChatRowIndex(y: 402, originY: originY, rowHeight: 70), 0)
-        XCTAssertEqual(telegramChatRowIndex(y: 430, originY: originY, rowHeight: 70), 1)
-    }
-
-    func testTelegramSidebarSplitRejectsImplausibleEditorFrame() {
-        let window = CGRect(x: 500, y: 200, width: 900, height: 700)
-        let implausibleEditor = CGRect(x: 700, y: 850, width: 300, height: 24)
-        let plausibleEditor = CGRect(x: 860, y: 850, width: 300, height: 24)
-
-        XCTAssertEqual(telegramSidebarSplit(windowFrame: window, editorFrame: nil), 797, accuracy: 0.01)
-        XCTAssertEqual(
-            telegramSidebarSplit(windowFrame: window, editorFrame: implausibleEditor),
-            797,
-            accuracy: 0.01
-        )
-        XCTAssertEqual(
-            telegramSidebarSplit(windowFrame: window, editorFrame: plausibleEditor),
-            800,
-            accuracy: 0.01
-        )
     }
 
     func testWeChatOwnsVisualHintDiscoveryAndCoordinateActivation() {
@@ -101,37 +82,20 @@ final class ApplicationAdapterTests: XCTestCase {
         let adapter = ApplicationAdapterRegistry().adapter(for: environment.application)
         let capabilities = adapter.capabilities(for: environment)
 
-        XCTAssertTrue(capabilities.hintProvider is WeChatHintProvider)
+        let provider = capabilities.hintProvider as? GPAHintProvider
+        XCTAssertEqual(provider?.configuration, .weChat)
         XCTAssertTrue(capabilities.activator is CoordinateElementActivator)
     }
 
     func testWeChatReportsScreenRecordingLimitationWhenVisualCaptureIsUnavailable() {
-        let provider = WeChatHintProvider(hasScreenCaptureAccess: { false })
+        let provider = GPAHintProvider(
+            configuration: .weChat,
+            hasScreenCaptureAccess: { false }
+        )
 
         XCTAssertEqual(
             provider.discoveryLimitation,
             .screenRecordingPermissionRequired(applicationName: "WeChat")
-        )
-    }
-
-    func testWeChatChatTextLinesMapToOneVisualRow() {
-        let originY: CGFloat = 240
-
-        XCTAssertEqual(wechatChatRowIndex(y: 255, originY: originY, rowHeight: 69), 0)
-        XCTAssertEqual(wechatChatRowIndex(y: 305, originY: originY, rowHeight: 69), 0)
-        XCTAssertEqual(wechatChatRowIndex(y: 312, originY: originY, rowHeight: 69), 1)
-    }
-
-    func testWeChatSidebarSplitTracksCompactAndWideWindows() {
-        XCTAssertEqual(
-            wechatSidebarSplit(windowFrame: CGRect(x: 100, y: 200, width: 664, height: 740)),
-            358.96,
-            accuracy: 0.01
-        )
-        XCTAssertEqual(
-            wechatSidebarSplit(windowFrame: CGRect(x: 100, y: 200, width: 1_000, height: 740)),
-            400,
-            accuracy: 0.01
         )
     }
 

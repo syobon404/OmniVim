@@ -18,7 +18,7 @@ struct TelegramApplicationAdapter: ApplicationAdapter {
                 for: environment.capabilityReport,
                 allowsInference: true
             ),
-            hintProvider: TelegramHintProvider(),
+            hintProvider: GPAHintProvider(configuration: .telegram),
             activator: CoordinateElementActivator()
         )
     }

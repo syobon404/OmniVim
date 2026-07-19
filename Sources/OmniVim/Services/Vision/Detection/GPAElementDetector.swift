@@ -18,6 +18,62 @@ struct GPAGUIElementDetection: Equatable, Sendable {
     }
 }
 
+struct GPADetectionSuppressor {
+    var intersectionOverUnionThreshold: CGFloat = 0.35
+    var containmentThreshold: CGFloat = 0.90
+    var minimumAreaSimilarity: CGFloat = 0.50
+
+    func suppress(_ detections: [GPAGUIElementDetection]) -> [GPAGUIElementDetection] {
+        let ranked = detections.sorted { lhs, rhs in
+            if lhs.confidence != rhs.confidence {
+                return lhs.confidence > rhs.confidence
+            }
+            let lhsArea = area(of: lhs.normalizedFrame)
+            let rhsArea = area(of: rhs.normalizedFrame)
+            if lhsArea != rhsArea { return lhsArea < rhsArea }
+            if lhs.normalizedFrame.minY != rhs.normalizedFrame.minY {
+                return lhs.normalizedFrame.minY < rhs.normalizedFrame.minY
+            }
+            return lhs.normalizedFrame.minX < rhs.normalizedFrame.minX
+        }
+
+        var accepted: [GPAGUIElementDetection] = []
+        for candidate in ranked {
+            guard !accepted.contains(where: { overlapsSameElement(candidate, $0) }) else {
+                continue
+            }
+            accepted.append(candidate)
+        }
+        return accepted
+    }
+
+    private func overlapsSameElement(
+        _ lhs: GPAGUIElementDetection,
+        _ rhs: GPAGUIElementDetection
+    ) -> Bool {
+        let lhsArea = area(of: lhs.normalizedFrame)
+        let rhsArea = area(of: rhs.normalizedFrame)
+        guard lhsArea > 0, rhsArea > 0 else { return false }
+
+        let intersectionArea = area(of: lhs.normalizedFrame.intersection(rhs.normalizedFrame))
+        guard intersectionArea > 0 else { return false }
+        let unionArea = lhsArea + rhsArea - intersectionArea
+        let intersectionOverUnion = intersectionArea / unionArea
+        if intersectionOverUnion >= intersectionOverUnionThreshold {
+            return true
+        }
+
+        let containment = intersectionArea / min(lhsArea, rhsArea)
+        let areaSimilarity = min(lhsArea, rhsArea) / max(lhsArea, rhsArea)
+        return containment >= containmentThreshold && areaSimilarity >= minimumAreaSimilarity
+    }
+
+    private func area(of frame: CGRect) -> CGFloat {
+        guard !frame.isNull, !frame.isInfinite else { return 0 }
+        return max(0, frame.width) * max(0, frame.height)
+    }
+}
+
 enum GPAElementDetectorError: LocalizedError {
     case bundledModelNotFound(name: String)
     case modelNotFound(searchedPaths: [String])
@@ -96,7 +152,7 @@ final class GPAElementDetector {
             throw GPAElementDetectorError.unexpectedResultType(resultType)
         }
 
-        return observations.compactMap { observation in
+        let detections: [GPAGUIElementDetection] = observations.compactMap { observation in
             let label = observation.labels.first
             let confidence = label?.confidence ?? observation.confidence
             guard confidence >= minimumConfidence else { return nil }
@@ -106,6 +162,7 @@ final class GPAElementDetector {
                 identifier: label?.identifier ?? "interactive"
             )
         }
+        return GPADetectionSuppressor().suppress(detections)
     }
 
     private static func loadDefault(
@@ -135,7 +192,9 @@ final class GPAElementDetector {
 
     private static var developmentModelURL: URL {
         URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent() // Detection
             .deletingLastPathComponent() // Vision
+            .deletingLastPathComponent() // Services
             .deletingLastPathComponent() // OmniVim
             .deletingLastPathComponent() // Sources
             .deletingLastPathComponent() // repository root

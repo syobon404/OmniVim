@@ -1,14 +1,5 @@
 import AppKit
 
-struct UIElementHint {
-    let element: AXUIElement
-    let processIdentifier: pid_t
-    let role: String
-    let subrole: String
-    let title: String
-    let frame: CGRect
-}
-
 final class AccessibilityScanner {
     func elements() -> [UIElementHint] {
         guard AXIsProcessTrusted(), let app = NSWorkspace.shared.frontmostApplication else { return [] }

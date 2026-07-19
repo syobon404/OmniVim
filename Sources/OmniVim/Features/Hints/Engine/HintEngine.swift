@@ -107,7 +107,7 @@ struct HintLayoutEngine {
     private func resolve(_ desired: CGRect, within bounds: CGRect, occupied: [CGRect]) -> CGRect {
         let xStep = desired.width + spacing
         let yStep = desired.height + spacing
-        let offsets: [CGPoint] = [
+        var offsets: [CGPoint] = [
             .zero,
             CGPoint(x: xStep, y: 0),
             CGPoint(x: 0, y: -yStep),
@@ -116,6 +116,16 @@ struct HintLayoutEngine {
             CGPoint(x: xStep, y: -yStep),
             CGPoint(x: -xStep, y: -yStep)
         ]
+        for radius in 2...5 {
+            for y in -radius...radius {
+                for x in -radius...radius where max(abs(x), abs(y)) == radius {
+                    offsets.append(CGPoint(
+                        x: CGFloat(x) * xStep,
+                        y: CGFloat(y) * yStep
+                    ))
+                }
+            }
+        }
 
         for offset in offsets {
             var frame = desired.offsetBy(dx: offset.x, dy: offset.y)

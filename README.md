@@ -85,6 +85,13 @@ prefix character and `Esc` dismisses the overlay.
 Hint codes are prefix-free and variable length. Markers are deduplicated before layout and rendered
 in one transparent panel per display.
 
+Choose **Preferences… → Hint overlay** from the OmniVim menu-bar item to configure style, color
+palette, and position independently. Styles are Adaptive: Glass → Keycap, Liquid Glass, and Keycap;
+Amber, Mint, and Violet palettes can be applied to any style. Position choices include Inside Top
+Left, Docked Edge, Above Center, Inside Top Right, Outside Right, and Inside Bottom Right. The
+default is Adaptive with Amber and Vimium-like Inside Top Left placement. Preferences are persisted
+and apply on the next `Control-F`.
+
 ### Telegram and WeChat visual hints
 
 Telegram and WeChat expose little of their main interface as useful AX controls. For normal UI
@@ -278,22 +285,24 @@ Build the signed development app used for manual testing with:
 ### Source layout
 
 - `App`: application lifecycle and top-level coordination.
+- `Features/Hints`: the independent UI-navigation feature, including target models, discovery,
+  activation, hint assignment/layout, overlay presentation, and preferences.
+- `Features/Vim`: text-editing modes, operator/motion parsing, command execution, sessions, and the
+  mode indicator. Hints are deliberately not owned by Vim.
+- `Services/Accessibility`: shared Accessibility scanning and low-level AX operations.
+- `Services/Vision`: reusable capture and GPA/Core ML element detection.
+- `Services/Input`: global key monitoring and synthesized keyboard or mouse input.
+- `Services/Diagnostics`: diagnostic logging.
 - `ApplicationIntegration`: capability model, probes, reusable mechanisms, app-specific profiles,
   terminal adapters, and runtime adapter selection.
-- `Vim`: mode engine, operator/motion parsing, command execution, and mode presentation.
-- `Input`: global key monitoring and synthesized keyboard or mouse input.
-- `Accessibility`: shared scanning and low-level Accessibility operations.
-- `Activation`: target activation policy and fallback sequencing.
-- `Hints`: pure hint code, visibility, deduplication, and layout engines.
-- `UI`: hint overlay panels and markers.
 - `Research/CompatibilityLab`: capability inspection, AX snapshots, and redacted compatibility
   artifacts used to research new app adapters.
-- `Diagnostics`: diagnostic logging.
 
 The coordinator owns interaction flow. `ApplicationAdapterRegistry` selects an app profile, each
-profile declares capabilities rather than branching inside the coordinator, and UI components
-report selected targets through an adapter-owned activation strategy. Terminal adapters translate
-the same Vim command model into the editing primitives offered by each foreground program.
+profile declares capabilities rather than implementing capture or inference itself, and UI
+components report selected targets through an adapter-owned activation strategy. Telegram and
+WeChat configure the shared `GPAHintProvider`; terminal adapters translate the same Vim command
+model into the editing primitives offered by each foreground program.
 
 ## Roadmap
 

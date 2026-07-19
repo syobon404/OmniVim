@@ -4,6 +4,7 @@ import AppKit
 final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
     private let coordinator = OmniVimCoordinator()
     private var statusItem: NSStatusItem!
+    private lazy var preferencesWindow = OmniVimPreferencesWindowController()
 #if DEBUG
     private lazy var compatibilityLab = CompatibilityLabWindowController()
     private lazy var motionLab = ModeMotionLabWindowController()
@@ -59,6 +60,14 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
         let search = menu.addItem(withTitle: "Search UI elements", action: #selector(showSearchHints), keyEquivalent: "")
         search.target = self
         menu.addItem(.separator())
+        let preferences = menu.addItem(
+            withTitle: "Preferences…",
+            action: #selector(openPreferences),
+            keyEquivalent: ","
+        )
+        preferences.keyEquivalentModifierMask = .command
+        preferences.target = self
+        menu.addItem(.separator())
 #if DEBUG
         let inspectorItem = menu.addItem(withTitle: "Open Compatibility Lab", action: #selector(openCompatibilityLab), keyEquivalent: "d")
         inspectorItem.keyEquivalentModifierMask = [.command, .option]
@@ -77,6 +86,7 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func showHints() { coordinator.showHints(searchOnly: false) }
     @objc private func showSearchHints() { coordinator.showHints(searchOnly: true) }
+    @objc private func openPreferences() { preferencesWindow.present() }
 
 #if DEBUG
     private func requestScreenCaptureAccessIfRequested() -> Bool {
@@ -103,12 +113,12 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
 
         let hints: [UIElementHint]
         if bundleIdentifier == "ru.keepcoder.Telegram" {
-            hints = TelegramHintProvider().hints(
+            hints = GPAHintProvider(configuration: .telegram).hints(
                 processIdentifier: target.processIdentifier,
                 searchOnly: false
             )
         } else if ["com.tencent.xinWeChat", "com.tencent.WeChat"].contains(bundleIdentifier) {
-            hints = WeChatHintProvider().hints(
+            hints = GPAHintProvider(configuration: .weChat).hints(
                 processIdentifier: target.processIdentifier,
                 searchOnly: false
             )
@@ -151,12 +161,12 @@ final class OmniVimAppDelegate: NSObject, NSApplicationDelegate {
 
         let hints: [UIElementHint]
         if bundleIdentifier == "ru.keepcoder.Telegram" {
-            hints = TelegramHintProvider().hints(
+            hints = GPAHintProvider(configuration: .telegram).hints(
                 processIdentifier: target.processIdentifier,
                 searchOnly: false
             )
         } else if ["com.tencent.xinWeChat", "com.tencent.WeChat"].contains(bundleIdentifier) {
-            hints = WeChatHintProvider().hints(
+            hints = GPAHintProvider(configuration: .weChat).hints(
                 processIdentifier: target.processIdentifier,
                 searchOnly: false
             )
