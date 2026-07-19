@@ -68,6 +68,7 @@
 		B10000000000000000000042 /* GPAHintProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000042 /* GPAHintProvider.swift */; };
 		B10000000000000000000043 /* UIElementHint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000043 /* UIElementHint.swift */; };
 		B10000000000000000000044 /* VimMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000044 /* VimMode.swift */; };
+		B10000000000000000000045 /* GPA_GUI_Detector.mlpackage in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000045 /* GPA_GUI_Detector.mlpackage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -145,6 +146,7 @@
 		F10000000000000000000042 /* GPAHintProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Discovery/GPAHintProvider.swift; sourceTree = "<group>"; };
 		F10000000000000000000043 /* UIElementHint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model/UIElementHint.swift; sourceTree = "<group>"; };
 		F10000000000000000000044 /* VimMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VimMode.swift; sourceTree = "<group>"; };
+		F10000000000000000000045 /* GPA_GUI_Detector.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = Models/GPA_GUI_Detector.mlpackage; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -209,6 +211,7 @@
 			isa = PBXGroup;
 			children = (
 				F1000000000000000000000A /* Info.plist */,
+				F10000000000000000000045 /* GPA_GUI_Detector.mlpackage */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -686,6 +689,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B10000000000000000000045 /* GPA_GUI_Detector.mlpackage in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

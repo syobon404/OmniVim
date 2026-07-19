@@ -49,11 +49,16 @@ OmniVim currently ships as a development build. Xcode is required.
 ```sh
 git clone git@github.com:syobon404/OmniVim.git
 cd OmniVim
+nix develop
+python Tools/ModelConversion/GPA/convert.py
+./scripts/promote-gpa-model.sh
 ./scripts/build-app.sh
-open OmniVim.app
+open .build/App/OmniVim.app
 ```
 
-The script builds the canonical Xcode target and places `OmniVim.app` in the repository root.
+The script builds the canonical Xcode target and places the signed development app at
+`.build/App/OmniVim.app`. To build, restart, and open that exact workspace copy in one step, run
+`./scripts/run-app.sh`.
 
 ### 2. Grant Accessibility permission
 
@@ -282,6 +287,12 @@ Build the signed development app used for manual testing with:
 ./scripts/build-app.sh
 ```
 
+Build, restart, and open it with:
+
+```sh
+./scripts/run-app.sh
+```
+
 ### Source layout
 
 - `App`: application lifecycle and top-level coordination.
@@ -297,6 +308,8 @@ Build the signed development app used for manual testing with:
   terminal adapters, and runtime adapter selection.
 - `Research/CompatibilityLab`: capability inspection, AX snapshots, and redacted compatibility
   artifacts used to research new app adapters.
+- `Design`: checked-in UI explorations and local design experiments, kept outside product sources.
+- `Docs`: project notes and confirmed follow-up work.
 
 The coordinator owns interaction flow. `ApplicationAdapterRegistry` selects an app profile, each
 profile declares capabilities rather than implementing capture or inference itself, and UI
@@ -315,7 +328,7 @@ model into the editing primitives offered by each foreground program.
 - Make mode-switch chords, indicators, and application policies user-configurable.
 - Introduce richer text-buffer context without sacrificing low resource usage.
 
-See [TODO.md](TODO.md) for confirmed limitations and current activation experiments.
+See [Docs/TODO.md](Docs/TODO.md) for confirmed limitations and current activation experiments.
 
 ## Thanks
 

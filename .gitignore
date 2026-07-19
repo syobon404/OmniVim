@@ -1,4 +1,6 @@
 .build/
+Design/
+# Guard against older scripts placing a copied product at the repository root.
 OmniVim.app/
 .DS_Store
 .swiftpm/

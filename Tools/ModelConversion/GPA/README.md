@@ -23,12 +23,17 @@ python Tools/ModelConversion/GPA/convert.py \
 ```
 
 The source checkpoint and generated packages are intentionally ignored by Git. After validating an
-export, copy it to `Resources/Models/GPA_GUI_Detector.mlpackage` and add that package to the OmniVim
-app target's Copy Bundle Resources phase. Xcode compiles it to `GPA_GUI_Detector.mlmodelc`.
+export, promote it into the Xcode runtime resources:
 
-Development builds also look for `Models/Generated/GPA_GUI_Detector.mlpackage`, so Telegram can use
-the freshly converted model without changing the Xcode resource phase. Set `OMNIVIM_GPA_MODEL_PATH`
-to test a model at another location. Distribution builds should bundle the compiled model.
+```sh
+./scripts/promote-gpa-model.sh
+```
+
+Xcode compiles the promoted package to `GPA_GUI_Detector.mlmodelc` and embeds it in the app.
+
+Set `OMNIVIM_GPA_MODEL_PATH` to test a model at another location. The source-tree generated model is
+only considered when `OMNIVIM_ALLOW_DEVELOPMENT_MODEL_FALLBACK=1`; ordinary app builds use the
+bundled compiled model.
 
 The checkpoint is pinned to Hugging Face revision
 `d04be6b715acb517068ca15d4b79159d26292713`. The model card declares the checkpoint MIT-licensed;

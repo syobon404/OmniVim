@@ -180,10 +180,15 @@ final class GPAElementDetector {
         if let override = environment["OMNIVIM_GPA_MODEL_PATH"], !override.isEmpty {
             candidates.append(URL(fileURLWithPath: override))
         }
-        candidates.append(developmentModelURL)
+        if environment["OMNIVIM_ALLOW_DEVELOPMENT_MODEL_FALLBACK"] == "1" {
+            candidates.append(developmentModelURL)
+        }
 
         for candidate in candidates where FileManager.default.fileExists(atPath: candidate.path) {
             return try GPAElementDetector(modelURL: candidate)
+        }
+        guard !candidates.isEmpty else {
+            throw GPAElementDetectorError.bundledModelNotFound(name: "GPA_GUI_Detector")
         }
         throw GPAElementDetectorError.modelNotFound(
             searchedPaths: candidates.map(\.path)
